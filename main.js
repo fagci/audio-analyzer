@@ -6,15 +6,10 @@ let auCtx, analyser, gain, source;
 let scaleX, scaleY, freqData;
 let pxpf;
 let binsCount;
-let freqStep;
 
-function updateGain() {
-  gain.gain.value = this.value;
-}
+let animationFrame;
 
-ig.addEventListener('change', updateGain);
-ig.addEventListener('mousemove', updateGain);
-ig.addEventListener('touchmove', updateGain);
+const FREQ_STEP = 1000;
 
 ctx.textBaseline = 'top';
 
@@ -48,32 +43,67 @@ function draw() {
   }
   ctx.stroke();
 
-  requestAnimationFrame(draw);
+  animationFrame = requestAnimationFrame(draw);
 }
 
-function handleSuccess(stream) {
+function updateGain() {
+  gain.gain.value = this.value;
+}
+
+window.addEventListener("load", async function() {
+  const devices = await navigator.mediaDevices.enumerateDevices();
+  const createOption = (d, i) =>
+    `<option value="${d.deviceId}">${d.label ? d.label : 'Input ' + i}</option>`;
+  src.innerHTML =
+    "<option>Select device</option>" +
+    devices
+      .filter((d) => d.kind === "audioinput")
+      .map(createOption)
+      .join("");
+});
+
+src.addEventListener("change", async function(e) {
+  if(animationFrame) {
+    cancelAnimationFrame(animationFrame);
+    animationFrame = null;
+  }
+  if (!auCtx) {
+    auCtx = new AudioContext();
+    gain = auCtx.createGain();
+    analyser = auCtx.createAnalyser();
+
+    analyser.fftSize = 1024;
+    gain.gain.value = inputGain.value;
+
+    binsCount = analyser.frequencyBinCount;
+
+    scaleX = W / binsCount;
+    scaleY = H / 256;
+    freqData = new Uint8Array(binsCount);
+    pxpf = FREQ_STEP * W / (freqData.length * auCtx.sampleRate / (binsCount * 2))
+
+    inputGain.addEventListener('change', updateGain);
+    inputGain.addEventListener('mousemove', updateGain);
+    inputGain.addEventListener('touchmove', updateGain);
+  }
+
+  const constraints = {
+    audio: { deviceId: {exact: src.value }},
+    video: false
+  };
+
+  const stream = await navigator.mediaDevices.getUserMedia(constraints);
+
+  if (source) {
+    source.disconnect(gain);
+    const tracks = source.getTracks()
+    tracks.forEach(track => {track.stop()})
+    source.stop();
+    source = undefined
+  }
+
   source = auCtx.createMediaStreamSource(stream);
   source.connect(gain);
   gain.connect(analyser);
   draw();
-};
-
-st.addEventListener('click', function() {
-  auCtx = new AudioContext();
-  gain = auCtx.createGain();
-  analyser = auCtx.createAnalyser();
-
-  analyser.fftSize = 1024;
-  gain.gain.value = ig.value;
-
-  binsCount = analyser.frequencyBinCount;
-
-  freqStep = 1000;
-  scaleX = W / binsCount;
-  scaleY = H / 256;
-  freqData = new Uint8Array(binsCount);
-  pxpf = freqStep * W / (freqData.length * auCtx.sampleRate / (binsCount*2))
-
-  navigator.mediaDevices.getUserMedia({ audio: true, video: false })
-    .then(handleSuccess);
-})
+});
