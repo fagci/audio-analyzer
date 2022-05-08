@@ -1,6 +1,6 @@
 import Canvas from './canvas.js'
 
-let audioContext, analyser, gain, source, javascriptNode;
+let audioContext, analyser, gain, source;
 let freqData;
 
 let canvas;
@@ -22,11 +22,6 @@ async function onDeviceSelect() {
     gain = audioContext.createGain();
     analyser = audioContext.createAnalyser();
 
-    javascriptNode = audioContext.createScriptProcessor(1024, 1, 0);
-    javascriptNode.onaudioprocess = function() {
-      analyser.getByteFrequencyData(freqData);
-    }
-
     analyser.fftSize = 1024 * 4;
     gain.gain.value = inputGain.value;
 
@@ -36,7 +31,6 @@ async function onDeviceSelect() {
     inputGain.addEventListener('mousemove', updateGain);
     inputGain.addEventListener('touchmove', updateGain);
     gain.connect(analyser);
-    analyser.connect(javascriptNode);
   }
 
   try {
@@ -68,7 +62,9 @@ async function updateDevicesList() {
 }
 
 async function onPageLoad() {
-  canvas = new Canvas();
+  canvas = new Canvas(function() {
+    analyser.getByteFrequencyData(freqData);
+  });
   updateDevicesList()
   navigator.mediaDevices.addEventListener('devicechange', updateDevicesList);
   window.addEventListener("resize", canvas.resize);

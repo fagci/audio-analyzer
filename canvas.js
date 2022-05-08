@@ -1,5 +1,6 @@
 export default class Canvas {
-  constructor() {
+  constructor(onUpdateCallback) {
+    this.onUpdateCallback = onUpdateCallback;
     this.ctxBG = fftBG.getContext("2d");
     this.ctx = fft.getContext("2d");
     this.resize()
@@ -10,6 +11,8 @@ export default class Canvas {
     this.sampleRate = sampleRate;
     this.scaleX = this.W / data.length;
     this.scaleY = this.H / 256;
+    this.ctx.lineWidth = 2;
+    this.ctx.strokeStyle = '#05ffff';
     this.drawBG();
     this.draw();
   }
@@ -26,8 +29,9 @@ export default class Canvas {
   }
 
   draw() {
-    this.drawGraph();
     this.animationFrame = requestAnimationFrame(this.draw.bind(this));
+    this.onUpdateCallback();
+    this.drawGraph();
   }
 
   drawBG() {
@@ -38,8 +42,8 @@ export default class Canvas {
 
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
-    ctx.fillStyle = 'rgb(200, 200, 200)';
-    ctx.strokeStyle = 'rgb(64, 64, 64)';
+    ctx.fillStyle = '#eee';
+    ctx.strokeStyle = '#aaa';
 
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -53,8 +57,6 @@ export default class Canvas {
 
   drawGraph() {
     this.ctx.clearRect(0, 0, this.W, this.H);
-    this.ctx.lineWidth = 2;
-    this.ctx.strokeStyle = 'rgb(0, 200, 0)';
     this.ctx.beginPath();
     this.ctx.moveTo(0, this.H);
     for (let i = 0, x = 0; i < this.data.length, x < this.W; i++, x += this.scaleX) {
