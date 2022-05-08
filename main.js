@@ -5,12 +5,15 @@ const H = cv.height = cv.clientHeight;
 let auCtx, analyser, gain, source;
 let scaleX, scaleY, freqData;
 let pxpf;
+let binsCount;
+let freqStep;
 
 function updateGain() {
   gain.gain.value = this.value;
 }
 
 ig.addEventListener('change', updateGain);
+ig.addEventListener('mousemove', updateGain);
 ig.addEventListener('touchmove', updateGain);
 
 ctx.textBaseline = 'top';
@@ -40,7 +43,7 @@ function draw() {
   ctx.strokeStyle = 'rgb(0, 200, 0)';
   ctx.beginPath();
   ctx.moveTo(0, H);
-  for (let i = 0, x = 0; i < freqData.length; i++, x += scaleX) {
+  for (let i = 0, x = 0; i < binsCount, x < W; i++, x += scaleX) {
     ctx.lineTo(x, H - freqData[i] * scaleY);
   }
   ctx.stroke();
@@ -60,13 +63,16 @@ st.addEventListener('click', function() {
   gain = auCtx.createGain();
   analyser = auCtx.createAnalyser();
 
-  analyser.fftSize = 512;
+  analyser.fftSize = 1024;
   gain.gain.value = ig.value;
 
-  scaleX = W / analyser.frequencyBinCount;
+  binsCount = analyser.frequencyBinCount;
+
+  freqStep = 1000;
+  scaleX = W / binsCount;
   scaleY = H / 256;
-  freqData = new Uint8Array(analyser.frequencyBinCount);
-  pxpf = 1000 * W / (freqData.length * auCtx.sampleRate / analyser.fftSize)
+  freqData = new Uint8Array(binsCount);
+  pxpf = freqStep * W / (freqData.length * auCtx.sampleRate / (binsCount*2))
 
   navigator.mediaDevices.getUserMedia({ audio: true, video: false })
     .then(handleSuccess);
