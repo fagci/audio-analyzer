@@ -1,109 +1,78 @@
-const ctx = cv.getContext("2d");
-const W = cv.width = cv.clientWidth;
-const H = cv.height = cv.clientHeight;
+import Canvas from './canvas.js'
 
-let auCtx, analyser, gain, source;
-let scaleX, scaleY, freqData;
-let pxpf;
-let binsCount;
+let audioContext, analyser, gain, source, javascriptNode;
+let freqData;
 
-let animationFrame;
-
-const FREQ_STEP = 1000;
-
-ctx.textBaseline = 'top';
-
-ctx.fillStyle = 'rgb(200, 200, 200)';
-
-function draw() {
-  analyser.getByteFrequencyData(freqData);
-
-  ctx.clearRect(0, 0, W, H);
-
-  ctx.textAlign = 'left';
-  ctx.fillText('Gain:' + gain.gain.value, 8, 16)
-
-  ctx.lineWidth = 1;
-  ctx.strokeStyle = 'rgb(64, 64, 64)';
-  ctx.textAlign = 'middle';
-  ctx.beginPath();
-  for (let k = 1, x = pxpf; x < W; k++, x += pxpf) {
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, H - 16);
-    ctx.fillText(k + "k", x, H - 12)
-  }
-  ctx.stroke();
-
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = 'rgb(0, 200, 0)';
-  ctx.beginPath();
-  ctx.moveTo(0, H);
-  for (let i = 0, x = 0; i < binsCount, x < W; i++, x += scaleX) {
-    ctx.lineTo(x, H - freqData[i] * scaleY);
-  }
-  ctx.stroke();
-
-  animationFrame = requestAnimationFrame(draw);
-}
+let canvas;
 
 function updateGain() {
   gain.gain.value = this.value;
 }
 
-window.addEventListener("load", async function() {
-  const devices = await navigator.mediaDevices.enumerateDevices();
-  const createOption = (d, i) =>
-    `<option value="${d.deviceId}">${d.label ? d.label : 'Input ' + i}</option>`;
-  src.innerHTML =
-    "<option>Select device</option>" +
-    devices
-      .filter((d) => d.kind === "audioinput")
-      .map(createOption)
-      .join("");
-});
+async function onDeviceSelect() {
+  const constraints = {
+    audio: { deviceId: src.value },
+    video: false
+  };
 
-src.addEventListener("change", async function(e) {
-  if(animationFrame) {
-    cancelAnimationFrame(animationFrame);
-    animationFrame = null;
-  }
-  if (!auCtx) {
-    auCtx = new AudioContext();
-    gain = auCtx.createGain();
-    analyser = auCtx.createAnalyser();
+  canvas.stop();
 
-    analyser.fftSize = 1024;
+  if (!audioContext) {
+    audioContext = new AudioContext();
+    gain = audioContext.createGain();
+    analyser = audioContext.createAnalyser();
+
+    javascriptNode = audioContext.createScriptProcessor(1024, 1, 0);
+    javascriptNode.onaudioprocess = function() {
+      analyser.getByteFrequencyData(freqData);
+    }
+
+    analyser.fftSize = 1024 * 4;
     gain.gain.value = inputGain.value;
 
-    binsCount = analyser.frequencyBinCount;
-
-    scaleX = W / binsCount;
-    scaleY = H / 256;
-    freqData = new Uint8Array(binsCount);
-    pxpf = FREQ_STEP * W / (freqData.length * auCtx.sampleRate / (binsCount * 2))
+    freqData = new Uint8Array(analyser.frequencyBinCount);
 
     inputGain.addEventListener('change', updateGain);
     inputGain.addEventListener('mousemove', updateGain);
     inputGain.addEventListener('touchmove', updateGain);
+    gain.connect(analyser);
+    analyser.connect(javascriptNode);
   }
 
-  const constraints = {
-    audio: { deviceId: {exact: src.value }},
-    video: false
-  };
-
-  const stream = await navigator.mediaDevices.getUserMedia(constraints);
-
-  if (source) {
-    source.disconnect(gain);
-    const tracks = source.getTracks()
-    tracks.forEach(track => {track.stop()})
-    source.stop();
-    source = undefined
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia(constraints)
+    if (source) {
+      source.disconnect(gain);
+      source = undefined
+    }
+    source = audioContext.createMediaStreamSource(stream);
+    source.connect(gain);
+    canvas.start(freqData, audioContext.sampleRate);
+  } catch (err) {
+    alert(`${err.message}\nTry to reload app and select same device`)
   }
+}
 
-  source = auCtx.createMediaStreamSource(stream);
-  source.connect(gain);
-  gain.connect(analyser);
-  draw();
-});
+async function getMediaDevices(type) {
+  const devices = await navigator.mediaDevices.enumerateDevices();
+  return devices.filter(device => device.kind === type)
+}
+
+function createOption(d, i) {
+  return `<option value="${d.deviceId}">${d.label ? d.label : 'Input ' + i}</option>`;
+}
+
+async function updateDevicesList() {
+  const devices = await getMediaDevices('audioinput');
+  src.innerHTML = "<option>Select device</option>" + devices.map(createOption).join("");
+}
+
+async function onPageLoad() {
+  canvas = new Canvas();
+  updateDevicesList()
+  navigator.mediaDevices.addEventListener('devicechange', updateDevicesList);
+  window.addEventListener("resize", canvas.resize);
+}
+
+src.addEventListener("change", onDeviceSelect);
+window.addEventListener("load", onPageLoad);

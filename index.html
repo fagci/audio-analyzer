@@ -4,11 +4,15 @@
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-    <canvas id="cv"></canvas>
+    <div class="fft">
+        <canvas id="fftBG"></canvas>
+        <canvas id="fft"></canvas>
+    </div>
     <div>
         <label for="inputGain">Gain</label>
         <input type="range" id="inputGain" min="0" max="40" step="0.5" value=1 />
     </div>
     <select id="src" name="src"></select>
-    <script src="/main.js"></script>
+    <script type="module" src="/canvas.js"></script>
+    <script type="module" src="/main.js"></script>
 </body>
