@@ -1,112 +1,14 @@
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<canvas id="cv"></canvas>
-<div>
-    <label for=ig>Gain</label>
-    <input type="range" id="ig" min="0" max="40" step="0.5" value=1 />
-</div>
-<button id="st">Start</button>
-<style>
-    body {
-        color: #fff;
-        background: #222;
-        display: flex;
-        flex-flow: column;
-        align-items: center;
-        gap: 16px;
-    }
-
-    * {
-        box-sizing: border-box;
-    }
-
-    button {
-        text-transform: uppercase;
-        background: #282;
-        border: none;
-        padding: 12px 24px;
-        border-radius: 6px;
-    }
-
-    #cv {
-        width: 100%;
-        height: 256px;
-        background: #000;
-        border-radius: 6px;
-    }
-
-    input {
-        width: 100%
-    }
-</style>
-<script>
-    const ctx = cv.getContext("2d");
-    const W = cv.width = cv.clientWidth;
-    const H = cv.height = cv.clientHeight;
-
-    let auCtx, analyser, gain, source;
-    let scaleX, scaleY, freqData;
-    let pxpf;
-
-    function updateGain() {
-        gain.gain.value = this.value;
-    }
-
-    ig.addEventListener('change', updateGain);
-    ig.addEventListener('touchmove', updateGain);
-
-    ctx.textBaseline = 'top';
-
-    ctx.fillStyle = 'rgb(200, 200, 200)';
-
-    function draw() {
-        analyser.getByteFrequencyData(freqData);
-
-        ctx.clearRect(0, 0, W, H);
-
-        ctx.fillText('Gain:' + gain.gain.value, 8, 16)
-
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = 'rgb(64, 64, 64)';
-        ctx.beginPath();
-        for (let x = pxpf; x < W; x += pxpf) {
-            ctx.moveTo(x, 0);
-            ctx.lineTo(x, H);
-        }
-        ctx.stroke();
-
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = 'rgb(0, 200, 0)';
-        ctx.beginPath();
-        ctx.moveTo(0, H);
-        for (let i = 0, x = 0; i < freqData.length; i++, x += scaleX) {
-            ctx.lineTo(x, H - freqData[i] * scaleY);
-        }
-        ctx.stroke();
-
-        requestAnimationFrame(draw);
-    }
-
-    function handleSuccess(stream) {
-        source = auCtx.createMediaStreamSource(stream);
-        source.connect(gain);
-        gain.connect(analyser);
-        draw();
-    };
-
-    st.addEventListener('click', function () {
-        auCtx = new AudioContext();
-        gain = auCtx.createGain();
-        analyser = auCtx.createAnalyser();
-
-        analyser.fftSize = 512;
-        gain.gain.value = ig.value;
-
-        scaleX = W / analyser.frequencyBinCount;
-        scaleY = H / 256;
-        freqData = new Uint8Array(analyser.frequencyBinCount);
-        pxpf = 1000 * W / (freqData.length * auCtx.sampleRate / analyser.fftSize)
-
-        navigator.mediaDevices.getUserMedia({audio: true, video: false})
-            .then(handleSuccess);
-    })
-</script>
+<!DOCTYPE html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <canvas id="cv"></canvas>
+    <div>
+        <label for=ig>Gain</label>
+        <input type="range" id="ig" min="0" max="40" step="0.5" value=1 />
+    </div>
+    <button id="st">Start</button>
+    <script src="/main.js"></script>
+</body>
