@@ -67,7 +67,7 @@ async function onPageLoad() {
   });
   updateDevicesList()
   navigator.mediaDevices.addEventListener('devicechange', updateDevicesList);
-  window.addEventListener("resize", canvas.resize);
+  window.addEventListener("resize", canvas.resize.bind(canvas));
 }
 
 src.addEventListener("change", onDeviceSelect);
