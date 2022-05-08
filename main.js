@@ -22,7 +22,7 @@ async function onDeviceSelect() {
     gain = audioContext.createGain();
     analyser = audioContext.createAnalyser();
 
-    analyser.fftSize = 1024 * 4;
+    analyser.fftSize = 1024 * 8;
     gain.gain.value = inputGain.value;
 
     freqData = new Uint8Array(analyser.frequencyBinCount);

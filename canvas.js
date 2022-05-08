@@ -1,7 +1,7 @@
 export default class Canvas {
   constructor(onUpdateCallback) {
     this.onUpdateCallback = onUpdateCallback;
-    this.ctxBG = fftBG.getContext("2d", { antialias: false });
+    this.ctxBG = fftBG.getContext("2d");
     this.ctxSpectrum = spectrum.getContext("2d");
     this.ctx = fft.getContext("2d");
     this.resize()
@@ -33,7 +33,7 @@ export default class Canvas {
     this.fftScaleY = this.fftH / 256;
     this.spectrumScaleY = this.spectrumH / 256;
     this.ctx.lineWidth = 1.5;
-    this.ctx.strokeStyle = '#05ffff';
+    this.ctx.strokeStyle = '#fff';
 
     this.createColorGradient()
 
@@ -55,7 +55,7 @@ export default class Canvas {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
     ctx.fillStyle = '#eee';
-    ctx.strokeStyle = '#888';
+    ctx.strokeStyle = '#666';
 
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -91,21 +91,22 @@ export default class Canvas {
   }
 
   createColorGradient() {
-    const gradient = this.ctxSpectrum.createLinearGradient(0, 0, 0, 255);
-    gradient.addColorStop(0, '#002');
-    gradient.addColorStop(0.15, '#00f');
-    gradient.addColorStop(0.35, '#fff');
+    const gradient = this.ctxSpectrum.createLinearGradient(0, 0, 255, 0);
+    gradient.addColorStop(0, '#000');
+    gradient.addColorStop(0.025, '#008');
+    gradient.addColorStop(0.25, '#08f');
+    gradient.addColorStop(0.35, '#0f8');
     gradient.addColorStop(0.5, '#ff0');
-    gradient.addColorStop(0.75, '#f00');
-    gradient.addColorStop(1, '#800');
+    gradient.addColorStop(0.75, '#f80');
+    gradient.addColorStop(1, '#600');
     this.ctxSpectrum.fillStyle = gradient;
-    this.ctxSpectrum.fillRect(1, 0, 1, 255);
+    this.ctxSpectrum.fillRect(0, 1, 256, 1);
     const colors = [];
-    for (let i = 0; i < 255; i++) {
-      let p = this.ctxSpectrum.getImageData(1, i, 1, 1).data;
+    for (let i = 0; i < 256; i++) {
+      let p = this.ctxSpectrum.getImageData(i, 1, 1, 1).data;
       colors[i] = `rgb(${p[0]},${p[1]},${p[2]})`;
     }
     this.colors = colors;
-    this.ctxSpectrum.clearRect(0, 0, this.W, this.H);
+    // this.ctxSpectrum.clearRect(0, 0, this.W, this.H);
   }
 }
