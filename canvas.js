@@ -60,19 +60,19 @@ export default class Canvas {
     const d = this.d;
 
     const c = [];
-    for (let i = 0; i < W; i++) {
-      d[i] = 0;
-      c[i] = 0;
+    for (let x = 0; x < W; ++x) {
+      d[x] = 0;
+      c[x] = 0;
     }
 
-    for (let i = 0; i < dLen; i++) {
+    for (let i = 0; i < dLen; ++i) {
       const xi = (i * scaleX) | 0;
       d[xi] += data[i];
       c[xi]++;
     }
 
-    for (let i = 0; i < W; i++) {
-      d[i] = (d[i] / c[i]) | 0;
+    for (let x = 0; x < W; ++x) {
+      d[x] = (d[x] / c[x]) | 0;
     }
   }
 
@@ -80,8 +80,9 @@ export default class Canvas {
     const data = this.data;
     const W = this.W;
     const d = this.d;
-    for (let x = 0; x < W; x++) {
-      d[x] = data[(x / this.scaleX) | 0];
+    const scaleX = this.scaleX;
+    for (let x = 0; x < W; ++x) {
+      d[x] = data[(x / scaleX) | 0];
     }
   }
 
@@ -126,7 +127,7 @@ export default class Canvas {
     ctx.clearRect(0, 0, W, fftH);
     ctx.beginPath();
     ctx.moveTo(0, fftH);
-    for (let x = 0; x < W; x++) {
+    for (let x = 0; x < W; ++x) {
       ctx.lineTo(x, fftH - data[x] * fftScaleY);
     }
     ctx.stroke();
@@ -144,7 +145,7 @@ export default class Canvas {
     imageData = ctx.getImageData(0, spectrumH - 1, W, 1);
     console.log(data)
 
-    for (let x = 0; x < W; x++) {
+    for (let x = 0; x < W; ++x) {
       let ind = x * 4;
       const p = colors[data[x]];
       imageData.data[ind] = p[0];
