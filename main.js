@@ -18,7 +18,12 @@ function updateFftSize() {
 
 async function onDeviceSelect() {
   const constraints = {
-    audio: { deviceId: src.value },
+    audio: {
+        sampleRate: 48000,
+        channelCount: 1,
+        volume: 1.0,
+        deviceId: src.value,
+    },
     video: false
   };
 
