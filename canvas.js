@@ -2,8 +2,8 @@ export default class Canvas {
   constructor(onUpdateCallback) {
     this.onUpdateCallback = onUpdateCallback;
     this.ctxBG = fftBG.getContext("2d");
-    this.ctxSpectrum = spectrum.getContext("2d");
-    this.ctx = fft.getContext("2d");
+    this.ctxSpectrum = spectrum.getContext("2d", { alpha: false });
+    this.ctxFft = fft.getContext("2d");
     this.resize()
   }
 
@@ -12,8 +12,10 @@ export default class Canvas {
   }
 
   start(data, sampleRate) {
+    this.d = [];
     this.data = data;
     this.sampleRate = sampleRate;
+    this.normalizeData = this.data.length > this.W ? this.averageData : this.interpolateData;
     this.resize()
     this.draw();
   }
@@ -35,7 +37,7 @@ export default class Canvas {
       this.scaleX = this.W / this.data.length;
     }
     this.fftScaleY = this.fftH / 256;
-    this.ctx.strokeStyle = '#fff';
+    this.ctxFft.strokeStyle = '#fff';
 
     this.createColorGradient()
 
@@ -45,8 +47,42 @@ export default class Canvas {
   draw() {
     this.animationFrame = requestAnimationFrame(this.draw.bind(this));
     this.onUpdateCallback();
+    this.normalizeData();
     this.drawGraph();
     this.drawSpectrum();
+  }
+
+  averageData() {
+    const data = this.data;
+    const dLen = data.length;
+    const W = this.W;
+    const scaleX = this.scaleX;
+    const d = this.d;
+
+    const c = [];
+    for (let i = 0; i < W; i++) {
+      d[i] = 0;
+      c[i] = 0;
+    }
+
+    for (let i = 0; i < dLen; i++) {
+      const xi = (i * scaleX) | 0;
+      d[xi] += data[i];
+      c[xi]++;
+    }
+
+    for (let i = 0; i < W; i++) {
+      d[i] = (d[i] / c[i]) | 0;
+    }
+  }
+
+  interpolateData() {
+    const data = this.data;
+    const W = this.W;
+    const d = this.d;
+    for (let x = 0; x < W; x++) {
+      d[x] = data[(x / this.scaleX) | 0];
+    }
   }
 
   drawBG() {
@@ -81,39 +117,39 @@ export default class Canvas {
   }
 
   drawGraph() {
-    const ctx = this.ctx;
+    const ctx = this.ctxFft;
     const fftH = this.fftH;
-    const data = this.data;
-    const scaleX = this.scaleX;
+    const data = this.d;
     const fftScaleY = this.fftScaleY;
     const W = this.W;
 
     ctx.clearRect(0, 0, W, fftH);
     ctx.beginPath();
     ctx.moveTo(0, fftH);
-    for (let i = 0, x = 0; i < data.length, x < W; i++, x += scaleX) {
-      ctx.lineTo(x | 0, fftH - data[i] * fftScaleY);
+    for (let x = 0; x < W; x++) {
+      ctx.lineTo(x, fftH - data[x] * fftScaleY);
     }
     ctx.stroke();
   }
 
   drawSpectrum() {
     const ctx = this.ctxSpectrum;
-    const data = this.data;
+    const spectrumH = this.spectrumH;
+    const data = this.d;
     const colors = this.colors;
-    const scaleX = this.scaleX;
+    const W = this.W;
 
-    let imageData = ctx.getImageData(0, 0, this.W, this.spectrumH);
+    let imageData = ctx.getImageData(0, 0, W, spectrumH);
     ctx.putImageData(imageData, 0, 1);
-    imageData = ctx.getImageData(0, this.spectrumH - 1, this.W, 1);
+    imageData = ctx.getImageData(0, spectrumH - 1, W, 1);
+    console.log(data)
 
-    for (let i = 0, x = 0; i < data.length, x < this.W; i++, x += scaleX) {
-      let ind = (x | 0) * 4;
-      const p = colors[data[i]];
+    for (let x = 0; x < W; x++) {
+      let ind = x * 4;
+      const p = colors[data[x]];
       imageData.data[ind] = p[0];
       imageData.data[ind + 1] = p[1];
       imageData.data[ind + 2] = p[2];
-      imageData.data[ind + 3] = 255;
     }
     ctx.putImageData(imageData, 0, 0);
   }
@@ -131,10 +167,9 @@ export default class Canvas {
     gradient.addColorStop(0, '#000');
     this.ctxSpectrum.fillStyle = gradient;
     this.ctxSpectrum.fillRect(0, 1, 256, 5);
-    const colors = [];
+    this.colors = [];
     for (let i = 0; i < 256; i++) {
-      colors[i] = this.ctxSpectrum.getImageData(i, 1, 1, 1).data;
+      this.colors[i] = this.ctxSpectrum.getImageData(i, 1, 1, 1).data;
     }
-    this.colors = colors;
   }
 }

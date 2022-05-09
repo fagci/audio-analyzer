@@ -19,10 +19,10 @@ function updateFftSize() {
 async function onDeviceSelect() {
   const constraints = {
     audio: {
-        sampleRate: 48000,
-        channelCount: 1,
-        volume: 1.0,
-        deviceId: src.value,
+      sampleRate: 48000,
+      channelCount: 1,
+      volume: 1.0,
+      deviceId: src.value,
     },
     video: false
   };
@@ -34,8 +34,8 @@ async function onDeviceSelect() {
     gain = audioContext.createGain();
     analyser = audioContext.createAnalyser();
 
-    analyser.fftSize = fftSize.value;
     analyser.smoothingTimeConstant = 0.4;
+    analyser.fftSize = fftSize.value;
     gain.gain.value = inputGain.value;
 
     freqData = new Uint8Array(analyser.frequencyBinCount);
@@ -58,6 +58,7 @@ async function onDeviceSelect() {
     canvas.start(freqData, audioContext.sampleRate);
   } catch (err) {
     alert(`${err.message}\nTry to reload app and select same device`)
+    console.error(err)
   }
 }
 
