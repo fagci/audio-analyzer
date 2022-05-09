@@ -9,6 +9,13 @@ function updateGain() {
   gain.gain.value = this.value;
 }
 
+function updateFftSize() {
+  if (source) canvas.stop();
+  analyser.fftSize = this.value;
+  freqData = new Uint8Array(analyser.frequencyBinCount);
+  if (source) canvas.start(freqData, audioContext.sampleRate);
+}
+
 async function onDeviceSelect() {
   const constraints = {
     audio: { deviceId: src.value },
@@ -22,7 +29,7 @@ async function onDeviceSelect() {
     gain = audioContext.createGain();
     analyser = audioContext.createAnalyser();
 
-    analyser.fftSize = 1024 * 8;
+    analyser.fftSize = fftSize.value;
     gain.gain.value = inputGain.value;
 
     freqData = new Uint8Array(analyser.frequencyBinCount);
@@ -30,6 +37,7 @@ async function onDeviceSelect() {
     inputGain.addEventListener('change', updateGain);
     inputGain.addEventListener('mousemove', updateGain);
     inputGain.addEventListener('touchmove', updateGain);
+    fftSize.addEventListener('change', updateFftSize);
     gain.connect(analyser);
   }
 

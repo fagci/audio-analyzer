@@ -7,6 +7,10 @@ export default class Canvas {
     this.resize()
   }
 
+  i2Hz(i) {
+    return i * this.sampleRate / (this.data.length * 2)
+  }
+
   start(data, sampleRate) {
     this.data = data;
     this.sampleRate = sampleRate;
@@ -37,7 +41,7 @@ export default class Canvas {
 
     this.createColorGradient()
 
-    this.drawBG();
+    if (this.data) this.drawBG();
   }
 
   draw() {
@@ -48,8 +52,10 @@ export default class Canvas {
   }
 
   drawBG() {
+    const F_GRAD = 1000;
+
     const ctx = this.ctxBG;
-    const pxpf = 2000 * this.W / this.sampleRate * 2;
+    let nextF = F_GRAD;
 
     ctx.clearRect(0, 0, this.W, this.H);
     ctx.textAlign = 'center';
@@ -58,11 +64,20 @@ export default class Canvas {
     ctx.strokeStyle = '#666';
 
     ctx.lineWidth = 1;
+
     ctx.beginPath();
-    for (let k = 1, x = pxpf; x < this.W; k++, x += pxpf) {
-      ctx.moveTo((x | 0) + 0.5, 0);
-      ctx.lineTo((x | 0) + 0.5, this.fftH);
-      ctx.fillText(k + "k", x, this.fftH + 4)
+
+    ctx.moveTo(0, this.fftH - 0.5);
+    ctx.lineTo(this.W, this.fftH - 0.5);
+
+    for (let i = 0, x = 0; i < this.data.length, x < this.W; i++, x += this.scaleX) {
+      let cf = this.i2Hz(i);
+      if (cf >= nextF) {
+        ctx.moveTo((x | 0) - 0.5, 0);
+        ctx.lineTo((x | 0) - 0.5, this.fftH);
+        ctx.fillText(nextF / 1000 + "k", x, this.fftH + 4);
+        nextF += F_GRAD;
+      }
     }
     ctx.stroke();
   }
