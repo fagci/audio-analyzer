@@ -82,11 +82,17 @@ export default class Canvas {
 
   drawGraph() {
     const ctx = this.ctx;
-    ctx.clearRect(0, 0, this.W, this.fftH);
+    const fftH = this.fftH;
+    const data = this.data;
+    const scaleX = this.scaleX;
+    const fftScaleY = this.fftScaleY;
+    const W = this.W;
+
+    ctx.clearRect(0, 0, W, fftH);
     ctx.beginPath();
-    ctx.moveTo(0, this.fftH);
-    for (let i = 0, x = 0; i < this.data.length, x < this.W; i++, x += this.scaleX) {
-      ctx.lineTo(x, this.fftH - this.data[i] * this.fftScaleY);
+    ctx.moveTo(0, fftH);
+    for (let i = 0, x = 0; i < data.length, x < W; i++, x += scaleX) {
+      ctx.lineTo(x | 0, fftH - data[i] * fftScaleY);
     }
     ctx.stroke();
   }
