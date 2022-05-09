@@ -99,14 +99,17 @@ export default class Canvas {
 
   drawSpectrum() {
     const ctx = this.ctxSpectrum;
+    const data = this.data;
+    const colors = this.colors;
+    const scaleX = this.scaleX;
 
     let imageData = ctx.getImageData(0, 0, this.W, this.spectrumH);
     ctx.putImageData(imageData, 0, 1);
     imageData = ctx.getImageData(0, this.spectrumH - 1, this.W, 1);
 
-    for (let i = 0, x = 0; i < this.data.length, x < this.W; i++, x += this.scaleX) {
+    for (let i = 0, x = 0; i < data.length, x < this.W; i++, x += scaleX) {
       let ind = (x | 0) * 4;
-      const p = this.colors[this.data[i]];
+      const p = colors[data[i]];
       imageData.data[ind] = p[0];
       imageData.data[ind + 1] = p[1];
       imageData.data[ind + 2] = p[2];
