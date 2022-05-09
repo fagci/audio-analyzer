@@ -35,8 +35,6 @@ export default class Canvas {
       this.scaleX = this.W / this.data.length;
     }
     this.fftScaleY = this.fftH / 256;
-    this.spectrumScaleY = this.spectrumH / 256;
-    this.ctx.lineWidth = 1.5;
     this.ctx.strokeStyle = '#fff';
 
     this.createColorGradient()
@@ -126,11 +124,8 @@ export default class Canvas {
     this.ctxSpectrum.fillRect(0, 1, 256, 5);
     const colors = [];
     for (let i = 0; i < 256; i++) {
-      let p = this.ctxSpectrum.getImageData(i, 1, 1, 1).data;
-      // colors[i] = `rgb(${p[0]},${p[1]},${p[2]})`;
-      colors[i] = p;
+      colors[i] = this.ctxSpectrum.getImageData(i, 1, 1, 1).data;
     }
     this.colors = colors;
-    // this.ctxSpectrum.clearRect(0, 0, this.W, this.H);
   }
 }
