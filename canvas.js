@@ -96,30 +96,39 @@ export default class Canvas {
   drawSpectrum() {
     const ctx = this.ctxSpectrum;
 
-    const imageData = ctx.getImageData(0, 0, this.W, this.spectrumH);
+    let imageData = ctx.getImageData(0, 0, this.W, this.spectrumH);
     ctx.putImageData(imageData, 0, 1);
+    imageData = ctx.getImageData(0, this.spectrumH - 1, this.W, 1);
 
     for (let i = 0, x = 0; i < this.data.length, x < this.W; i++, x += this.scaleX) {
-      ctx.fillStyle = this.colors[this.data[i]];
-      ctx.fillRect(x, 1, 1, 1);
+      let ind = (x | 0) * 4;
+      const p = this.colors[this.data[i]];
+      imageData.data[ind] = p[0];
+      imageData.data[ind + 1] = p[1];
+      imageData.data[ind + 2] = p[2];
+      imageData.data[ind + 3] = 255;
     }
+    ctx.putImageData(imageData, 0, 0);
   }
 
   createColorGradient() {
     const gradient = this.ctxSpectrum.createLinearGradient(0, 0, 255, 0);
+    gradient.addColorStop(1, '#400');
+    gradient.addColorStop(0.62, '#f00');
+    gradient.addColorStop(0.54, '#f80');
+    gradient.addColorStop(0.47, '#ff0');
+    gradient.addColorStop(0.39, '#fff');
+    gradient.addColorStop(0.31, '#08f');
+    gradient.addColorStop(0.15, '#008');
+    gradient.addColorStop(0.05, '#004');
     gradient.addColorStop(0, '#000');
-    gradient.addColorStop(0.025, '#008');
-    gradient.addColorStop(0.25, '#08f');
-    gradient.addColorStop(0.35, '#0f8');
-    gradient.addColorStop(0.5, '#ff0');
-    gradient.addColorStop(0.75, '#f80');
-    gradient.addColorStop(1, '#600');
     this.ctxSpectrum.fillStyle = gradient;
-    this.ctxSpectrum.fillRect(0, 1, 256, 1);
+    this.ctxSpectrum.fillRect(0, 1, 256, 5);
     const colors = [];
     for (let i = 0; i < 256; i++) {
       let p = this.ctxSpectrum.getImageData(i, 1, 1, 1).data;
-      colors[i] = `rgb(${p[0]},${p[1]},${p[2]})`;
+      // colors[i] = `rgb(${p[0]},${p[1]},${p[2]})`;
+      colors[i] = p;
     }
     this.colors = colors;
     // this.ctxSpectrum.clearRect(0, 0, this.W, this.H);
