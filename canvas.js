@@ -82,11 +82,11 @@ export default class Canvas {
     const ctx = this.ctxSpectrum;
 
     const imageData = ctx.getImageData(0, 0, this.W, this.spectrumH);
-    ctx.putImageData(imageData, 0, -1);
+    ctx.putImageData(imageData, 0, 1);
 
     for (let i = 0, x = 0; i < this.data.length, x < this.W; i++, x += this.scaleX) {
       ctx.fillStyle = this.colors[this.data[i]];
-      ctx.fillRect(x, this.spectrumH - 1, 1, 1);
+      ctx.fillRect(x, 1, 1, 1);
     }
   }
 
