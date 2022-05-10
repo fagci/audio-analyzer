@@ -1,6 +1,5 @@
 export default class Canvas {
-  constructor(onUpdateCallback) {
-    this.onUpdateCallback = onUpdateCallback;
+  constructor() {
     this.ctxBG = fftBG.getContext("2d");
     this.ctxSpectrum = spectrum.getContext("2d", { alpha: false });
     this.ctxFft = fft.getContext("2d");
@@ -11,11 +10,12 @@ export default class Canvas {
     return i * this.sampleRate / (this.data.length * 2)
   }
 
-  start(data, sampleRate) {
+  start(audio) {
     this.d = [];
-    this.data = data;
-    this.sampleRate = sampleRate;
+    this.data = audio.getFreqData();
+    this.sampleRate = audio.getSampleRate();
     this.normalizeData = this.data.length > this.W ? this.averageData : this.interpolateData;
+    this.onUpdateCallback = audio.updateFreqData;
     this.resize()
     this.draw();
   }
@@ -143,7 +143,6 @@ export default class Canvas {
     let imageData = ctx.getImageData(0, 0, W, spectrumH);
     ctx.putImageData(imageData, 0, 1);
     imageData = ctx.getImageData(0, spectrumH - 1, W, 1);
-    console.log(data)
 
     for (let x = 0; x < W; ++x) {
       let ind = x * 4;
