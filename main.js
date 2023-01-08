@@ -55,6 +55,10 @@ async function onPageLoad() {
   updateDevicesList()
   navigator.mediaDevices.addEventListener('devicechange', updateDevicesList);
   window.addEventListener("resize", canvas.resize.bind(canvas));
+
+    try {
+        await navigator.wakeLock.request('screen');
+    } catch (_) {}
 }
 
 src.addEventListener("change", onDeviceSelect);
