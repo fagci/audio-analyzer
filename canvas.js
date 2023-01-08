@@ -37,7 +37,7 @@ export default class Canvas {
       this.scaleX = this.W / this.data.length;
     }
     this.fftScaleY = this.fftH / 256;
-    this.ctxFft.strokeStyle = '#fff';
+    this.ctxFft.strokeStyle = '#aff';
 
     this.createColorGradient()
 
@@ -96,15 +96,18 @@ export default class Canvas {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
     ctx.fillStyle = '#eee';
-    ctx.strokeStyle = '#666';
+    ctx.strokeStyle = '#444';
 
     ctx.lineWidth = 1;
 
     ctx.beginPath();
 
-    ctx.moveTo(0, this.fftH - 0.5);
-    ctx.lineTo(this.W, this.fftH - 0.5);
+    ctx.moveTo(0, this.fftH);
+    ctx.lineTo(this.W, this.fftH);
+    ctx.stroke();
 
+    ctx.setLineDash([3, 5]);
+    ctx.beginPath();
     for (let i = 0, x = 0; i < this.data.length, x < this.W; i++, x += this.scaleX) {
       let cf = this.i2Hz(i);
       if (cf >= nextF) {
@@ -128,7 +131,7 @@ export default class Canvas {
     ctx.beginPath();
     ctx.moveTo(0, fftH);
     for (let x = 0; x < W; ++x) {
-      ctx.lineTo(x, fftH - data[x] * fftScaleY);
+      ctx.lineTo(x + 0.5, ((fftH - data[x] * fftScaleY) | 0) + 0.5);
     }
     ctx.stroke();
   }
