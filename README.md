@@ -4,7 +4,7 @@ Audio spectrum analyzer with input gain slider, FFT bins count selector, device 
 
 App here: [https://fagci.github.io/audio-analyzer/](https://fagci.github.io/audio-analyzer/)
 
-![](20221207-014306.jpg)
+![](photo_2023-01-09_01-26-57.jpg)
 
 ## Usage
 
