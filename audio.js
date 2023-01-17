@@ -16,7 +16,7 @@ export default class Audio {
     async start(deviceId) {
         const constraints = {
             audio: {
-                // sampleRate: 48000,
+                sampleRate: 48000,
                 channelCount: 1,
                 // volume: 1.0,
                 echoCancellation: false,
