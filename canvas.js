@@ -1,7 +1,7 @@
 export default class Canvas {
     constructor() {
         this.ctxBG = fftBG.getContext("2d");
-        this.ctxSpectrum = spectrum.getContext("2d", { alpha: false });
+        this.ctxSpectrum = spectrum.getContext("2d", { alpha: false, willReadFrequently: true });
         this.ctxFft = fft.getContext("2d");
         this.resize()
     }
