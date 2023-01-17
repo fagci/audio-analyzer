@@ -5,8 +5,8 @@ export default class Audio {
         this.analyser = this.audioContext.createAnalyser();
 
         this.analyser.smoothingTimeConstant = 0;
-        this.analyser.minDecibels = -140;
-        this.analyser.maxDecibels = -30;
+        this.analyser.minDecibels = -130;
+        this.analyser.maxDecibels = -20;
 
         this.gain.connect(this.analyser);
         this.setFftSize(fftSize)
