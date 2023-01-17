@@ -1,5 +1,5 @@
 export default class Audio {
-    constructor(fftSize = 2048, gain = 1) {
+    constructor(fftSize = 4096, gain = 1) {
         this.audioContext = new AudioContext();
         this.gain = this.audioContext.createGain();
         this.analyser = this.audioContext.createAnalyser();
@@ -16,6 +16,12 @@ export default class Audio {
     async start(deviceId) {
         const constraints = {
             audio: {
+                // sampleRate: 48000,
+                channelCount: 1,
+                // volume: 1.0,
+                echoCancellation: false,
+                autoGainControl: false,
+                noiseSuppression: false,
                 deviceId,
             },
             video: false
