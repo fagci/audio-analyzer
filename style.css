@@ -56,3 +56,9 @@ canvas {
 input {
   width: 100%
 }
+
+.tiny-btn {
+    padding: 4px 8px;
+    font-size: 0.75em;
+    width: 72px;
+}

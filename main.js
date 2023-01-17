@@ -72,11 +72,12 @@ async function onPageLoad() {
     navigator.mediaDevices.addEventListener('devicechange', updateDevicesList);
     window.addEventListener("resize", canvas.resize.bind(canvas));
 
-
     try {
         await navigator.wakeLock.request('screen');
     } catch (_) { }
 }
+setMinDb.addEventListener("click", () => { audio.setMinDecibels(prompt('Enter min dB value', audio.analyser.minDecibels)) });
+setMaxDb.addEventListener("click", () => { audio.setMaxDecibels(prompt('Enter max dB value', audio.analyser.maxDecibels)) });
 
 palettesSelect.addEventListener("change", onPaletteSelect);
 src.addEventListener("change", onDeviceSelect);

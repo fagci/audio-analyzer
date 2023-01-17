@@ -41,6 +41,14 @@ export default class Audio {
         this.gain.gain.value = value;
     }
 
+    setMinDecibels(value) {
+        this.analyser.minDecibels = value;
+    }
+
+    setMaxDecibels(value) {
+        this.analyser.maxDecibels = value;
+    }
+
     setFftSize(value) {
         this.analyser.fftSize = value;
         this.freqData = new Uint8Array(this.analyser.frequencyBinCount);
