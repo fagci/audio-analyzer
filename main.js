@@ -4,31 +4,26 @@ import Audio from './audio.js'
 import GUI from 'https://cdn.jsdelivr.net/npm/lil-gui@0.17/+esm'
 
 let audio;
-
-let canvas;
+const canvas = new Canvas();
 const gui = new GUI({ title: 'Settings', autoPlace: true });
+const deviceListControl = gui.add({ device: 'Select device' }, 'device').name('Input');
+const mediaDevices = navigator.mediaDevices;
+
+const FFT_SIZES = [128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768];
 
 async function onDeviceSelect(deviceId) {
     canvas.stop();
 
     if (!audio) {
-        audio = new Audio(4096, 1);
-        const an = audio.getAnalyser();
-        const fftSizes = [128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768];
+        audio = new Audio();
         const audioSettings = gui.addFolder('Audio').close();
         const displaySettings = gui.addFolder('Display').close();
-        audioSettings.add(an, 'minDecibels', -200, 100).name('min dB');
-        audioSettings.add(an, 'maxDecibels', -200, 100).name('max dB');
-        audioSettings.add(an, 'smoothingTimeConstant', 0, 1, 0.01).name('smoothing');
-        audioSettings.add(audio.getGain().gain, 'value', 0, 50, 0.5).name('gain');
-        audioSettings.add({ fftSize: 4096 }, 'fftSize', fftSizes).name('FFT bins').onChange(v => {
-            canvas.stop();
-            audio.setFftSize(v);
-            canvas.start(audio);
-        });
-        displaySettings.add({ palette: '' }, 'palette', Object.keys(palettes)).onChange(theme => {
-            canvas.setPalette(palettes[theme]);
-        }).setValue('gqrx')
+        audioSettings.add({ fftSize: 4096 }, 'fftSize', FFT_SIZES).name('FFT bins').onChange(onFftChange);
+        audioSettings.add(audio.gain.gain, 'value', 0, 8, 0.1).decimals(1).name('gain');
+        audioSettings.add(audio.analyser, 'maxDecibels', -200, 100).name('max dB').setValue(-10);
+        audioSettings.add(audio.analyser, 'minDecibels', -200, 100).name('min dB').setValue(-130);
+        audioSettings.add(audio.analyser, 'smoothingTimeConstant', 0, 1, 0.1).name('smoothing').setValue(0);
+        displaySettings.add({ palette: '' }, 'palette', Object.keys(palettes)).onChange(setPalette).setValue('gqrx')
     }
 
     try {
@@ -40,31 +35,38 @@ async function onDeviceSelect(deviceId) {
     }
 }
 
+async function setPalette(theme) {
+    canvas.setPalette(palettes[theme]);
+}
+
+async function onFftChange(v) {
+    canvas.stop();
+    audio.setFftSize(v);
+    canvas.start(audio);
+}
+
 async function getMediaDevices(type) {
-    const devices = await navigator.mediaDevices.enumerateDevices();
+    const devices = await mediaDevices.enumerateDevices();
     return devices.filter(device => device.kind === type)
 }
 
 async function updateDevicesList() {
-    const devices = await getMediaDevices('audioinput');
     const devList = {};
+    const devices = await getMediaDevices('audioinput');
+
     devices.forEach((d, i) => {
-        console.log(d);
         devList[d.label || `Input ${i}`] = d.deviceId;
     });
-    gui.add({ device: 'Select device' }, 'device', devList).name('Input').onChange(onDeviceSelect)
+
+    deviceListControl.options(devList).onChange(onDeviceSelect);
 }
 
-async function onPageLoad() {
-    canvas = new Canvas();
-    updateDevicesList();
-    navigator.mediaDevices.addEventListener('devicechange', updateDevicesList);
-    window.addEventListener("resize", canvas.resize.bind(canvas));
+window.addEventListener('resize', canvas.resize);
 
+updateDevicesList();
+mediaDevices.addEventListener('devicechange', updateDevicesList);
 
-    try {
-        await navigator.wakeLock.request('screen');
-    } catch (_) { }
-}
+try {
+    await navigator.wakeLock.request('screen');
+} catch (_) { }
 
-window.addEventListener("load", onPageLoad);

@@ -1,9 +1,9 @@
 export default class Canvas {
     constructor() {
-        this.ctxBG = fftBG.getContext("2d");
-        this.ctxSpectrum = spectrum.getContext("2d", { alpha: false, willReadFrequently: true });
-        this.ctxFft = fft.getContext("2d");
-        this.resize()
+        this.ctxBG = fftBG.getContext('2d');
+        this.ctxSpectrum = spectrum.getContext('2d', { alpha: false, willReadFrequently: true });
+        this.ctxFft = fft.getContext('2d');
+        this.resize();
     }
 
     i2Hz(i) {
@@ -16,7 +16,7 @@ export default class Canvas {
         this.sampleRate = audio.getSampleRate();
         this.normalizeData = this.freqData.length > this.W ? this.averageData : this.interpolateData;
         this.onUpdateCallback = audio.updateFreqData;
-        this.resize()
+        this.resize();
         this.draw();
     }
 
@@ -24,14 +24,14 @@ export default class Canvas {
         cancelAnimationFrame(this.animationFrame);
     }
 
-    resize() {
+    resize = () => {
         this.W = fft.width = fftBG.width = spectrum.width = fft.parentElement.clientWidth;
         this.H = fftBG.height = fft.parentElement.clientHeight;
 
         this.fftH = fft.height = fftBG.height * 0.2
         this.spectrumH = spectrum.height = fftBG.height * 0.8 - 16
 
-        spectrum.style.top = this.fftH + 16 + "px"
+        spectrum.style.top = this.fftH + 16 + 'px'
 
         if (this.freqData) {
             this.scaleX = this.W / this.freqData.length;
@@ -75,7 +75,7 @@ export default class Canvas {
     }
 
     interpolateData() {
-        const data = this.data;
+        const data = this.freqData;
         const W = this.W;
         const d = this.d;
         const scaleX = this.scaleX;
@@ -111,7 +111,7 @@ export default class Canvas {
             if (cf >= nextF) {
                 ctx.moveTo((x | 0) - 0.5, 0);
                 ctx.lineTo((x | 0) - 0.5, this.fftH);
-                ctx.fillText(nextF / 1000 + "k", x, this.fftH + 4);
+                ctx.fillText(nextF / 1000 + 'k', x, this.fftH + 4);
                 nextF += F_GRAD;
             }
         }

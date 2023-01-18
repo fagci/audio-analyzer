@@ -1,27 +1,24 @@
 export default class Audio {
-    constructor(fftSize = 4096, gain = 1) {
+    analyser;
+    gain;
+
+    constructor() {
         this.audioContext = new AudioContext();
         this.gain = this.audioContext.createGain();
         this.analyser = this.audioContext.createAnalyser();
 
-        this.analyser.smoothingTimeConstant = 0;
-        this.analyser.minDecibels = -130;
-        this.analyser.maxDecibels = -20;
-
         this.gain.connect(this.analyser);
-        this.setFftSize(fftSize)
-        this.setGain(gain)
+        this.setFftSize(4096)
     }
 
     async start(deviceId) {
         const constraints = {
             audio: {
+                autoGainControl: false,
+                echoCancellation: false,
+                noiseSuppression: false,
                 sampleRate: 48000,
                 channelCount: 1,
-                // volume: 1.0,
-                echoCancellation: false,
-                autoGainControl: false,
-                noiseSuppression: false,
                 deviceId,
             },
             video: false
@@ -37,30 +34,16 @@ export default class Audio {
         this.source.connect(this.gain);
     }
 
-    setGain(value) {
-        this.gain.gain.value = value;
-    }
-
-    setMinDecibels(value) {
-        this.analyser.minDecibels = value;
-    }
-
-    setMaxDecibels(value) {
-        this.analyser.maxDecibels = value;
-    }
+    getAnalyser() { return this.analyser; }
+    getGain() { return this.gain; }
+    getFreqData() { return this.freqData; }
 
     setFftSize(value) {
         this.analyser.fftSize = value;
-        const bufferLength = this.analyser.frequencyBinCount;
-        this.freqData = new Uint8Array(bufferLength);
+        this.freqData = new Uint8Array(this.analyser.frequencyBinCount);
     }
 
-    getAnalyser() { return this.analyser; }
-    getGain() { return this.gain; }
-
-    getFreqData() { return this.freqData; }
-    getTimeDomainData() { return this.dataArray; }
-    updateFreqData = () => { 
+    updateFreqData = () => {
         this.analyser.getByteFrequencyData(this.freqData);
     }
     getSampleRate() { return this.audioContext.sampleRate; }
