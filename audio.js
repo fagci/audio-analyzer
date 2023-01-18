@@ -54,6 +54,9 @@ export default class Audio {
         this.freqData = new Uint8Array(this.analyser.frequencyBinCount);
     }
 
+    getAnalyser() { return this.analyser; }
+    getGain() { return this.gain; }
+
     getFreqData() { return this.freqData; }
     updateFreqData = () => { this.analyser.getByteFrequencyData(this.freqData); }
     getSampleRate() { return this.audioContext.sampleRate; }

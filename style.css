@@ -13,14 +13,6 @@ body {
   box-sizing: border-box;
 }
 
-button {
-  text-transform: uppercase;
-  background: #282;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 6px;
-}
-
 .fft {
   width: 100%;
   height: 000;
@@ -29,36 +21,10 @@ button {
     flex-grow: 1;
 }
 
-.controls {
-    padding: 16px;
-    display: grid;
-    gap: 16px;
-}
-
-.controls div {
-    display: grid;
-    grid-template-columns: 0.5fr 1fr;
-    gap: 16px;
-}
-
-.controls :first-child {
-    grid-template-columns: 1fr;
-}
-
 canvas {
   position: absolute;
   top:0;
   right: 0;
   bottom: 0;
   left: 0;
-}
-
-input {
-  width: 100%
-}
-
-.tiny-btn {
-    padding: 4px 8px;
-    font-size: 0.75em;
-    width: 72px;
 }

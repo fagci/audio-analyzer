@@ -5,34 +5,33 @@ import Audio from './audio.js'
 let audio;
 
 let canvas;
+const GUI = lil.GUI;
+const gui = new GUI({ title: 'Settings' });
+const deviceSettings = gui.addFolder('Device');
+const audioSettings = gui.addFolder('Audio');
+const displaySettings = gui.addFolder('Display');
 
-function updateGain() {
-    audio.setGain(this.value)
-}
-
-function updateFftSize() {
-    canvas.stop();
-    audio.setFftSize(this.value)
-    canvas.start(audio);
-}
-
-async function onDeviceSelect() {
+async function onDeviceSelect(deviceId) {
     canvas.stop();
 
     if (!audio) {
-        audio = new Audio(fftSize.value, inputGain.value);
-
-        inputGain.addEventListener('change', updateGain);
-        inputGain.addEventListener('mousemove', updateGain);
-        inputGain.addEventListener('touchmove', updateGain);
-        fftSize.addEventListener('change', updateFftSize);
+        audio = new Audio(4096, 1);
+        const an = audio.getAnalyser();
+        audioSettings.add(an, 'minDecibels', -200, 100).name('min dB')
+        audioSettings.add(an, 'maxDecibels', -200, 100).name('max dB')
+        audioSettings.add(audio.getGain().gain, 'value', 0, 50, 0.5).name('gain')
+        displaySettings.add({ fftSize: 4096 }, 'fftSize', [128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768]).name('FFT bins').onChange(v => {
+            canvas.stop();
+            audio.setFftSize(v);
+            canvas.start(audio);
+        });
     }
 
     try {
-        audio.start(src.value);
+        audio.start(deviceId);
         canvas.start(audio);
     } catch (err) {
-        alert(`${err.message}\nTry to reload app and select same device`)
+        alert(err.message)
         console.error(err)
     }
 }
@@ -42,43 +41,29 @@ async function getMediaDevices(type) {
     return devices.filter(device => device.kind === type)
 }
 
-function createOption(d, i) {
-    return `<option value="${d.deviceId}">${d.label ? d.label : 'Input ' + i}</option>`;
-}
-
 async function updateDevicesList() {
     const devices = await getMediaDevices('audioinput');
-    src.innerHTML = "<option>Select device</option>" + devices.map(createOption).join("");
-}
-
-async function onPaletteSelect() {
-    const palette = palettes[palettesSelect.value];
-    canvas.setPalette(palette);
-}
-
-function initPalettesList() {
-    palettesSelect.innerHTML =
-        Object.keys(palettes)
-            .map(p => `<option value="${p}">${p}</option>`)
-            .join("");
-    palettesSelect.value = 'gqrx';
-    onPaletteSelect();
+    const devList = {};
+    devices.forEach((d, i) => {
+        console.log(d);
+        devList[d.label || `Input ${i}`] = d.deviceId;
+    })
+    deviceSettings.add({device: 'Select input device'}, 'device', devList).name('Input').onChange(onDeviceSelect)
 }
 
 async function onPageLoad() {
     canvas = new Canvas();
-    initPalettesList();
     updateDevicesList();
     navigator.mediaDevices.addEventListener('devicechange', updateDevicesList);
     window.addEventListener("resize", canvas.resize.bind(canvas));
+
+    displaySettings.add({ palette: '' }, 'palette', Object.keys(palettes)).onChange(theme => {
+        canvas.setPalette(palettes[theme]);
+    }).setValue('gqrx')
 
     try {
         await navigator.wakeLock.request('screen');
     } catch (_) { }
 }
-setMinDb.addEventListener("click", () => { audio.setMinDecibels(prompt('Enter min dB value', audio.analyser.minDecibels)) });
-setMaxDb.addEventListener("click", () => { audio.setMaxDecibels(prompt('Enter max dB value', audio.analyser.maxDecibels)) });
 
-palettesSelect.addEventListener("change", onPaletteSelect);
-src.addEventListener("change", onDeviceSelect);
 window.addEventListener("load", onPageLoad);
