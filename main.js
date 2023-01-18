@@ -58,6 +58,7 @@ async function updateDevicesList() {
         devList[d.label || `Input ${i}`] = d.deviceId;
     });
 
+    // todo: fix doubling control
     deviceListControl.options(devList).onChange(onDeviceSelect);
 }
 
