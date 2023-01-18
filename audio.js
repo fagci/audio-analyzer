@@ -51,13 +51,17 @@ export default class Audio {
 
     setFftSize(value) {
         this.analyser.fftSize = value;
-        this.freqData = new Uint8Array(this.analyser.frequencyBinCount);
+        const bufferLength = this.analyser.frequencyBinCount;
+        this.freqData = new Uint8Array(bufferLength);
     }
 
     getAnalyser() { return this.analyser; }
     getGain() { return this.gain; }
 
     getFreqData() { return this.freqData; }
-    updateFreqData = () => { this.analyser.getByteFrequencyData(this.freqData); }
+    getTimeDomainData() { return this.dataArray; }
+    updateFreqData = () => { 
+        this.analyser.getByteFrequencyData(this.freqData);
+    }
     getSampleRate() { return this.audioContext.sampleRate; }
 }

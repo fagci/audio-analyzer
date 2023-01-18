@@ -7,14 +7,14 @@ export default class Canvas {
     }
 
     i2Hz(i) {
-        return i * this.sampleRate / (this.data.length * 2)
+        return i * this.sampleRate / (this.freqData.length * 2)
     }
 
     start(audio) {
         this.d = [];
-        this.data = audio.getFreqData();
+        this.freqData = audio.getFreqData();
         this.sampleRate = audio.getSampleRate();
-        this.normalizeData = this.data.length > this.W ? this.averageData : this.interpolateData;
+        this.normalizeData = this.freqData.length > this.W ? this.averageData : this.interpolateData;
         this.onUpdateCallback = audio.updateFreqData;
         this.resize()
         this.draw();
@@ -33,13 +33,13 @@ export default class Canvas {
 
         spectrum.style.top = this.fftH + 16 + "px"
 
-        if (this.data) {
-            this.scaleX = this.W / this.data.length;
+        if (this.freqData) {
+            this.scaleX = this.W / this.freqData.length;
         }
         this.fftScaleY = this.fftH / 256;
         this.ctxFft.strokeStyle = '#aff';
 
-        if (this.data) this.drawBG();
+        if (this.freqData) this.drawBG();
     }
 
     draw() {
@@ -51,7 +51,7 @@ export default class Canvas {
     }
 
     averageData() {
-        const data = this.data;
+        const data = this.freqData;
         const dLen = data.length;
         const W = this.W;
         const scaleX = this.scaleX;
@@ -106,7 +106,7 @@ export default class Canvas {
 
         ctx.setLineDash([3, 5]);
         ctx.beginPath();
-        for (let i = 0, x = 0; i < this.data.length, x < this.W; i++, x += this.scaleX) {
+        for (let i = 0, x = 0; i < this.freqData.length, x < this.W; i++, x += this.scaleX) {
             let cf = this.i2Hz(i);
             if (cf >= nextF) {
                 ctx.moveTo((x | 0) - 0.5, 0);
