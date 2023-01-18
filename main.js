@@ -6,7 +6,7 @@ let audio;
 
 let canvas;
 const GUI = lil.GUI;
-const gui = new GUI({ title: 'Settings' });
+const gui = new GUI({ title: 'Settings', autoPlace: true });
 const deviceSettings = gui.addFolder('Device');
 const audioSettings = gui.addFolder('Audio');
 const displaySettings = gui.addFolder('Display');

@@ -28,3 +28,8 @@ canvas {
   bottom: 0;
   left: 0;
 }
+
+ .lil-gui.autoPlace {
+    bottom: 0;
+    top: unset;
+ }
