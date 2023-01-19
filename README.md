@@ -1,6 +1,15 @@
 # audio-analyzer
 
-Audio spectrum analyzer with input gain slider, FFT bins count selector, device selector.
+Audio spectrum analyzer.
+
+Features:
+
+- simple and fast
+- web version
+- input gain change
+- analyser range in decibels
+- FFT bins count
+- tons of waterfall themes
 
 App here: [https://fagci.github.io/audio-analyzer/](https://fagci.github.io/audio-analyzer/)
 
