@@ -12,6 +12,7 @@ export default class Canvas {
 
     start(audio) {
         this.d = [];
+        this.dComp = [];
         this.freqData = audio.getFreqData();
         this.sampleRate = audio.getSampleRate();
         this.normalizeData = this.freqData.length > this.W ? this.averageData : this.interpolateData;
@@ -125,6 +126,13 @@ export default class Canvas {
         const fftScaleY = this.fftScaleY;
         const W = this.W;
 
+        if (this.dComp.length) {
+            for (let i in data) {
+                data[i] -= this.dComp[i];
+                if (data[i] < 0) data[i] = 0;
+            }
+        }
+
         ctx.clearRect(0, 0, W, fftH);
         ctx.beginPath();
         ctx.moveTo(0, fftH);
@@ -168,5 +176,9 @@ export default class Canvas {
         for (let i = 0; i < 256; i++) {
             this.colors[i] = this.ctxSpectrum.getImageData(i, 1, 1, 1).data;
         }
+    }
+
+    calibrate = () => {
+        this.dComp = [...this.d];
     }
 }

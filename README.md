@@ -13,11 +13,11 @@ Features:
 
 App here: [https://fagci.github.io/audio-analyzer/](https://fagci.github.io/audio-analyzer/)
 
-![](IMG_20230119_041510.jpg)
+![](.img/IMG_20230119_041510.jpg)
 
-![](IMG_20230119_041557.jpg)
+![](.img/IMG_20230119_041557.jpg)
 
-![](photo_2023-01-09_01-26-57.jpg)
+![](.img/photo_2023-01-09_01-26-57.jpg)
 
 Sound to test: [https://www.youtube.com/watch?v=FnzIpAAzP3w](https://www.youtube.com/watch?v=FnzIpAAzP3w)
 

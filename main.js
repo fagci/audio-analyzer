@@ -18,12 +18,53 @@ async function onDeviceSelect(deviceId) {
         audio = new Audio();
         const audioSettings = gui.addFolder('Audio').close();
         const displaySettings = gui.addFolder('Display').close();
-        audioSettings.add({ fftSize: 4096 }, 'fftSize', FFT_SIZES).name('FFT bins').onChange(onFftChange);
-        audioSettings.add(audio.gain.gain, 'value', 0, 8, 0.1).decimals(1).name('gain');
-        audioSettings.add(audio.analyser, 'maxDecibels', -200, 100).name('max dB').setValue(-10);
-        audioSettings.add(audio.analyser, 'minDecibels', -200, 100).name('min dB').setValue(-130);
-        audioSettings.add(audio.analyser, 'smoothingTimeConstant', 0, 1, 0.1).name('smoothing').setValue(0);
-        displaySettings.add({ palette: '' }, 'palette', Object.keys(palettes)).onChange(setPalette).setValue('gqrx')
+
+        audioSettings
+            .add({ fftSize: 4096 }, 'fftSize', FFT_SIZES)
+            .name('FFT bins')
+            .setValue(localStorage.getItem('fftSize') || 4096)
+            .onChange(onFftChange);
+
+        audioSettings
+            .add(audio.gain.gain, 'value', 0, 8)
+            .decimals(1)
+            .setValue(localStorage.getItem('gain') || 0.1)
+            .onChange((v) => { localStorage.setItem('gain', v) })
+            .name('gain');
+
+        audioSettings
+            .add(audio.analyser, 'maxDecibels', -200, 100)
+            .name('max dB')
+            .setValue(localStorage.getItem('maxDecibels') || -10)
+            .onChange((v) => { localStorage.setItem('maxDecibels', v) });
+
+        audioSettings
+            .add(audio.analyser, 'minDecibels', -200, 100)
+            .name('min dB')
+            .setValue(localStorage.getItem('minDecibels') || -130)
+            .onChange((v) => { localStorage.setItem('minDecibels', v) });
+
+        audioSettings
+            .add(audio.analyser, 'smoothingTimeConstant', 0, 1, 0.1)
+            .name('smoothing')
+            .setValue(0);
+
+        displaySettings
+            .add({ palette: '' }, 'palette', Object.keys(palettes))
+            .onChange(setPalette)
+            .setValue(localStorage.getItem('palette') || 'gqrx');
+
+        gui
+            .add({ calibrate: canvas.calibrate }, 'calibrate')
+            .name('Calibrate (experimental)');
+        gui
+            .add({
+                clear() {
+                    localStorage.clear();
+                    window.location.reload();
+                }
+            }, 'clear')
+            .name('Reset settings');
     }
 
     try {
@@ -36,11 +77,13 @@ async function onDeviceSelect(deviceId) {
 }
 
 async function setPalette(theme) {
+    localStorage.setItem('palette', theme);
     canvas.setPalette(palettes[theme]);
 }
 
 async function onFftChange(v) {
     canvas.stop();
+    localStorage.setItem('fftSize', v)
     audio.setFftSize(v);
     canvas.start(audio);
 }
@@ -61,6 +104,7 @@ async function updateDevicesList() {
     // todo: fix doubling control
     deviceListControl.options(devList).onChange(onDeviceSelect);
 }
+
 
 window.addEventListener('resize', canvas.resize);
 
