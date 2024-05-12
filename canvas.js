@@ -58,20 +58,13 @@ export default class Canvas {
         const scaleX = this.scaleX;
         const d = this.d;
 
-        const c = [];
         for (let x = 0; x < W; ++x) {
             d[x] = 0;
-            c[x] = 0;
         }
 
         for (let i = 0; i < dLen; ++i) {
             const xi = (i * scaleX) | 0;
-            d[xi] += data[i];
-            c[xi]++;
-        }
-
-        for (let x = 0; x < W; ++x) {
-            d[x] = (d[x] / c[x]) | 0;
+            if(data[i] > d[xi]) d[xi] = data[i];
         }
     }
 
@@ -150,8 +143,8 @@ export default class Canvas {
         const W = this.W;
 
         let imageData = ctx.getImageData(0, 0, W, spectrumH);
-        ctx.putImageData(imageData, 0, 1);
-        imageData = ctx.getImageData(0, spectrumH - 1, W, 1);
+        // ctx.putImageData(imageData, 0, 1);
+        // imageData = ctx.getImageData(0, spectrumH - 1, W, 1);
 
         for (let x = 0; x < W; ++x) {
             let ind = x * 4;
@@ -160,7 +153,7 @@ export default class Canvas {
             imageData.data[ind + 1] = p[1];
             imageData.data[ind + 2] = p[2];
         }
-        ctx.putImageData(imageData, 0, 0);
+        ctx.putImageData(imageData, 0, 1);
     }
 
     setPalette(palette) {
