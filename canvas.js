@@ -1,5 +1,8 @@
 export default class Canvas {
     constructor() {
+        this.frames = 0;
+        this.lmt = 0;
+        this.fps = 0;
         this.ctxBG = fftBG.getContext('2d');
         this.ctxSpectrum = spectrum.getContext('2d', { alpha: false, willReadFrequently: true });
         this.ctxFft = fft.getContext('2d');
@@ -64,7 +67,7 @@ export default class Canvas {
 
         for (let i = 0; i < dLen; ++i) {
             const xi = (i * scaleX) | 0;
-            if(data[i] > d[xi]) d[xi] = data[i];
+            if (data[i] > d[xi]) d[xi] = data[i];
         }
     }
 
@@ -133,27 +136,33 @@ export default class Canvas {
             ctx.lineTo(x + 0.5, ((fftH - data[x] * fftScaleY) | 0) + 0.5);
         }
         ctx.stroke();
+
+        ctx.fillStyle = '#fff';
+
+        this.frames++;
+        if (performance.now() - this.lmt > 1000) {
+            this.fps = this.frames * 1000 / (performance.now() - this.lmt);
+            this.lmt = performance.now();
+            this.frames = 0;
+        }
+        ctx.fillText(this.fps | 0, 0, 16);
     }
 
     drawSpectrum() {
         const ctx = this.ctxSpectrum;
-        const spectrumH = this.spectrumH;
         const data = this.d;
         const colors = this.colors;
         const W = this.W;
 
-        let imageData = ctx.getImageData(0, 0, W, spectrumH);
-        // ctx.putImageData(imageData, 0, 1);
-        // imageData = ctx.getImageData(0, spectrumH - 1, W, 1);
-
+        ctx.save();
+        ctx.translate(0, 1);
+        ctx.drawImage(ctx.canvas, 0, 0);
         for (let x = 0; x < W; ++x) {
-            let ind = x * 4;
             const p = colors[data[x]];
-            imageData.data[ind] = p[0];
-            imageData.data[ind + 1] = p[1];
-            imageData.data[ind + 2] = p[2];
+            ctx.fillStyle = `rgb(${p})`;
+            ctx.fillRect(x, 0, 1, 1);
         }
-        ctx.putImageData(imageData, 0, 1);
+        ctx.restore();
     }
 
     setPalette(palette) {
