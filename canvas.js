@@ -181,6 +181,21 @@ export default class Canvas {
     }
 
     calibrate = () => {
-        this.dComp = [...this.d];
+        if (this.dComp.length !== 0) {
+            this.dComp.length = 0;
+            return;
+        }
+        let mi = Math.min(...this.d);
+        this.dComp = this.d.map(c => c - mi);
+        const SZ = this.dComp.length;
+        for (let i = 0; i < SZ; ++i) {
+            let f = i > 0 ? i - 1 : 0;
+            let t = i < SZ - 1 ? i + 1 : SZ - 1;
+            let a = this.dComp.slice(f, t + 1);
+            let s = a.reduce((sum, item) => sum += item, 0);
+            let v = (s / a.length) | 0;
+            console.log(f, t, a, s, v, mi);
+            this.dComp[i] = v;
+        }
     }
 }
