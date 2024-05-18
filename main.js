@@ -28,7 +28,7 @@ async function onDeviceSelect(deviceId) {
         audioSettings
             .add(audio.gain.gain, 'value', 0, 46)
             .decimals(1)
-            .setValue(localStorage.getItem('gain') || 0.1)
+            .setValue(localStorage.getItem('gain') || 1)
             .onChange((v) => { localStorage.setItem('gain', v) })
             .name('gain');
 
