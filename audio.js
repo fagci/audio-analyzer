@@ -18,18 +18,28 @@ export default class Audio {
                 echoCancellation: { exact: false },
                 noiseSuppression: { exact: false },
                 voiceIsolation: false,
-                latency: 0,
+                latency: 0.02,
                 sampleRate: 48000,
-                channelCount: {exact: 1},
-                deviceId: {exact: deviceId},
+                channelCount: 1,
+                deviceId: { exact: deviceId },
+
+                googAudioMirroring: false,
+                googAutoGainControl: false,
+                googAutoGainControl2: false,
+                googEchoCancellation: false,
+                googHighpassFilter: false,
+                googNoiseSuppression: false,
+                googTypingNoiseDetection: false,
+
+                mozAutoGainControl: false,
             },
             video: false,
         };
         if (this.stream) {
-            this.stream.getTracks().forEach((t) => t.stop());
             this.source.disconnect(this.gain);
-            this.source = undefined;
-            this.stream = undefined;
+            this.stream.getTracks().forEach((t) => t.stop());
+            this.source = null;
+            this.stream = null;
         }
         this.stream = await navigator.mediaDevices.getUserMedia(constraints)
         this.source = this.audioContext.createMediaStreamSource(this.stream);

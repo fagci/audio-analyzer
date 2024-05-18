@@ -107,12 +107,13 @@ async function updateDevicesList() {
 }
 
 
-window.addEventListener('resize', canvas.resize);
+window.addEventListener('load', async function() {
+    window.addEventListener('resize', canvas.resize);
 
-updateDevicesList();
-mediaDevices.addEventListener('devicechange', updateDevicesList);
+    updateDevicesList();
+    mediaDevices.addEventListener('devicechange', updateDevicesList);
 
-try {
-    await navigator.wakeLock.request('screen');
-} catch (_) { }
-
+    try {
+        await navigator.wakeLock.request('screen');
+    } catch (_) { }
+});
