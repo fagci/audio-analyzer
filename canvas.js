@@ -4,7 +4,7 @@ export default class Canvas {
         this.lmt = 0;
         this.fps = 0;
         this.ctxBG = fftBG.getContext('2d', { antialias: false, alpha: false });
-        this.ctxSpectrum = spectrum.getContext('2d', { alpha: false, antialias: false });
+        this.ctxSpectrum = spectrum.getContext('2d', { alpha: false, antialias: false, willReadFrequently: true });
         this.ctxFft = fft.getContext('2d', { antialias: false });
         this.resize();
     }

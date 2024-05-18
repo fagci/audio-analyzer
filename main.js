@@ -35,13 +35,13 @@ async function onDeviceSelect(deviceId) {
         audioSettings
             .add(audio.analyser, 'maxDecibels', -200, 100)
             .name('max dB')
-            .setValue(localStorage.getItem('maxDecibels') || -10)
+            .setValue(localStorage.getItem('maxDecibels') || -30)
             .onChange((v) => { localStorage.setItem('maxDecibels', v) });
 
         audioSettings
             .add(audio.analyser, 'minDecibels', -200, 100)
             .name('min dB')
-            .setValue(localStorage.getItem('minDecibels') || -130)
+            .setValue(localStorage.getItem('minDecibels') || -145)
             .onChange((v) => { localStorage.setItem('minDecibels', v) });
 
         audioSettings
@@ -89,6 +89,7 @@ async function onFftChange(v) {
 }
 
 async function getMediaDevices(type) {
+    await navigator.mediaDevices.getUserMedia({ audio: true });
     const devices = await mediaDevices.enumerateDevices();
     return devices.filter(device => device.kind === type)
 }

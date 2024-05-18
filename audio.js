@@ -14,14 +14,14 @@ export default class Audio {
     async start(deviceId) {
         const constraints = {
             audio: {
-                autoGainControl: false,
-                echoCancellation: false,
-                noiseSuppression: false,
-                highpassFilter: false,
-                lowpassFilter: false,
+                autoGainControl: { exact: false },
+                echoCancellation: { exact: false },
+                noiseSuppression: { exact: false },
+                voiceIsolation: false,
+                latency: 0,
                 sampleRate: 48000,
-                channelCount: 1,
-                deviceId,
+                channelCount: {exact: 1},
+                deviceId: {exact: deviceId},
             },
             video: false,
         };
