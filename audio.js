@@ -17,11 +17,13 @@ export default class Audio {
                 autoGainControl: false,
                 echoCancellation: false,
                 noiseSuppression: false,
+                highpassFilter: false,
+                lowpassFilter: false,
                 sampleRate: 48000,
                 channelCount: 1,
                 deviceId,
             },
-            video: false
+            video: false,
         };
         if (this.stream) {
             this.stream.getTracks().forEach((t) => t.stop());
