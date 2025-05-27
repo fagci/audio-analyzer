@@ -108,7 +108,7 @@ async function updateDevicesList() {
 
 
 window.addEventListener('load', async function() {
-    window.addEventListener('resize', canvas.resize);
+    window.addEventListener('resize', canvas.resize, { passive: true });
 
     updateDevicesList();
     mediaDevices.addEventListener('devicechange', updateDevicesList);
@@ -116,4 +116,21 @@ window.addEventListener('load', async function() {
     try {
         await navigator.wakeLock.request('screen');
     } catch (_) { }
+});
+
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        // Приостановить обработку при скрытии страницы
+        canvas.stop();
+        if (audio && audio.audioContext) {
+            audio.audioContext.suspend();
+        }
+    } else {
+        // Возобновить при возвращении
+        if (audio && audio.audioContext) {
+            audio.audioContext.resume().then(() => {
+                canvas.start(audio);
+            });
+        }
+    }
 });

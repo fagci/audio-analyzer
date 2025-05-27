@@ -3,7 +3,10 @@ export default class Audio {
     gain;
 
     constructor() {
-        this.audioContext = new AudioContext();
+        this.audioContext = new (window.AudioContext || window.webkitAudioContext)({
+            latencyHint: 'interactive', // 'balanced' for power saving
+            sampleRate: 48000,
+        });
         this.gain = this.audioContext.createGain();
         this.analyser = this.audioContext.createAnalyser();
 

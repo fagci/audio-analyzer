@@ -47,6 +47,21 @@ export default class Canvas {
     }
 
     draw() {
+        if (document.hidden) {
+            this.stop();
+            return;
+        }
+        
+        // throttle FPS
+        const targetFPS = document.hasFocus() ? 60 : 30;
+        const now = performance.now();
+        if (now - this.lastFrameTime < 1000/targetFPS) {
+            this.animationFrame = requestAnimationFrame(this.draw.bind(this));
+            return;
+        }
+        this.lastFrameTime = now;
+
+
         this.animationFrame = requestAnimationFrame(this.draw.bind(this));
         this.onUpdateCallback();
         this.normalizeData();
@@ -55,6 +70,13 @@ export default class Canvas {
     }
 
     averageData() {
+        // Уменьшить частоту обновления данных
+        if (performance.now() - this.lastDataUpdate < 50) { // 20 FPS для данных
+            return;
+        }
+        this.lastDataUpdate = performance.now();
+
+
         const data = this.freqData;
         const dLen = data.length;
         const W = this.W;
@@ -149,6 +171,13 @@ export default class Canvas {
     }
 
     drawSpectrum() {
+        // Уменьшить частоту обновления спектрограммы
+        if (performance.now() - this.lastSpectrumUpdate < 40) { // 25 FPS для спектрограммы
+            return;
+        }
+        this.lastSpectrumUpdate = performance.now();
+
+
         const ctx = this.ctxSpectrum;
         const data = this.d;
         const colors = this.colors;
