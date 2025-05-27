@@ -46,6 +46,37 @@ export default class Canvas {
         if (this.freqData) this.drawBG();
     }
 
+    findPeaks(N = 3, threshold = 10, minDist = 10) {
+      // N — сколько пиков искать
+      // threshold — минимальный уровень (отсекает шум)
+      // minDist — минимальное расстояние между пиками (в пикселях)
+      const data = this.d;
+      const W = this.W;
+      let peaks = [];
+
+      for (let x = 1; x < W - 1; ++x) {
+        if (data[x] > threshold && data[x] > data[x - 1] && data[x] > data[x + 1]) {
+          peaks.push({ x, value: data[x] });
+        }
+      }
+
+      // Сортируем по убыванию амплитуды
+      peaks.sort((a, b) => b.value - a.value);
+
+      // Оставляем только N пиков, разнесённых не ближе minDist друг от друга
+      let filtered = [];
+      for (let i = 0; i < peaks.length && filtered.length < N; ++i) {
+        if (filtered.every(p => Math.abs(p.x - peaks[i].x) >= minDist)) {
+          const freqBin = Math.round(peaks[i].x / W * this.freqData.length);
+          const freqHz = this.i2Hz(freqBin);
+          filtered.push({ ...peaks[i], freqHz });
+        }
+      }
+      return filtered;
+    }
+
+
+
     draw() {
         if (document.hidden) {
             this.stop();
@@ -189,6 +220,35 @@ export default class Canvas {
             ctx.lineTo(x + 0.5, ((fftH - data[x] * fftScaleY) | 0) + 0.5);
         }
         ctx.stroke();
+
+
+
+        // Нарисовать несколько пиков
+        const peaks = this.findPeaks(3, 10, 10); // 3 пика, порог 10, минимум 10 пикселей между ними
+        for (const peak of peaks) {
+          ctx.save();
+          ctx.strokeStyle = '#f33';
+          ctx.fillStyle = '#fff';
+          ctx.beginPath();
+          ctx.arc(peak.x + 0.5, (this.fftH - peak.value * this.fftScaleY) + 0.5, 6, 0, 2 * Math.PI);
+          ctx.stroke();
+          ctx.fill();
+
+          ctx.font = 'bold 14px monospace';
+          ctx.fillStyle = '#f33';
+          ctx.textAlign = 'center';
+          ctx.fillText(
+            (peak.freqHz > 1000 ? (peak.freqHz / 1000).toFixed(2) + ' kHz' : peak.freqHz.toFixed(0) + ' Hz'),
+            peak.x,
+            (this.fftH - peak.value * this.fftScaleY) - 10
+          );
+          ctx.restore();
+        }
+
+
+
+
+
 
         ctx.fillStyle = '#fff';
 
