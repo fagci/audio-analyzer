@@ -93,13 +93,44 @@ export default class Canvas {
         }
     }
 
-    interpolateData() {
+    /* interpolateData() {
         const data = this.freqData;
         const W = this.W;
         const d = this.d;
         const scaleX = this.scaleX;
         for (let x = 0; x < W; ++x) {
             d[x] = data[(x / scaleX) | 0];
+        }
+    } */
+
+    interpolateData() {
+        // Уменьшить частоту обновления данных
+        if (performance.now() - this.lastDataUpdate < 50) { // 20 FPS для данных
+            return;
+        }
+        this.lastDataUpdate = performance.now();
+
+        const data = this.freqData;
+        const W = this.W;
+        const d = this.d;
+        const scaleX = this.scaleX;
+        
+        // Кубическая интерполяция вместо линейной
+        for (let x = 0; x < W; ++x) {
+            const pos = x / scaleX;
+            const i = Math.floor(pos);
+            const t = pos - i;
+            
+            // Берем 4 точки для интерполяции
+            const p0 = data[Math.max(0, i-1)];
+            const p1 = data[i];
+            const p2 = data[Math.min(data.length-1, i+1)];
+            const p3 = data[Math.min(data.length-1, i+2)];
+            
+            // Кубическая интерполяция
+            d[x] = p1 + 0.5 * t * (p2 - p0 + 
+                  t * (2*p0 - 5*p1 + 4*p2 - p3 + 
+                  t * (3*(p1 - p2) + p3 - p0)));
         }
     }
 
