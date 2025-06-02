@@ -17,24 +17,12 @@ export default class Audio {
     async start(deviceId) {
         const constraints = {
             audio: {
-                autoGainControl: { exact: false },
-                echoCancellation: { exact: false },
-                noiseSuppression: { exact: false },
-                voiceIsolation: false,
-                latency: 0.02,
-                sampleRate: 48000,
-                channelCount: 1,
-                deviceId: { exact: deviceId },
-
-                googAudioMirroring: false,
-                googAutoGainControl: false,
-                googAutoGainControl2: false,
-                googEchoCancellation: false,
-                googHighpassFilter: false,
-                googNoiseSuppression: false,
-                googTypingNoiseDetection: false,
-
-                mozAutoGainControl: false,
+              autoGainControl: false,
+              echoCancellation: false,
+              noiseSuppression: false,
+              sampleRate: 48000,
+              channelCount: 1,
+              ...(deviceId && { deviceId: { exact: deviceId } }),
             },
             video: false,
         };
