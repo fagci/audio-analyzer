@@ -35,6 +35,8 @@ export default class Canvas {
         this.fftH = fft.height = fftBG.height * 0.2
         this.spectrumH = spectrum.height = fftBG.height * 0.8 - 16
 
+        this.imageData = this.ctxSpectrum.getImageData(0, 0, this.W, this.spectrumH);
+
         spectrum.style.top = this.fftH + 16 + 'px'
 
         if (this.freqData) {
@@ -75,8 +77,6 @@ export default class Canvas {
       return filtered;
     }
 
-
-
     draw() {
         if (document.hidden) {
             this.stop();
@@ -84,16 +84,14 @@ export default class Canvas {
         }
         
         // throttle FPS
-        const targetFPS = document.hasFocus() ? 60 : 30;
+        const targetFPS = document.hasFocus() ? 33 : 25;
         const now = performance.now();
+        this.animationFrame = requestAnimationFrame(this.draw.bind(this));
         if (now - this.lastFrameTime < 1000/targetFPS) {
-            this.animationFrame = requestAnimationFrame(this.draw.bind(this));
             return;
         }
         this.lastFrameTime = now;
 
-
-        this.animationFrame = requestAnimationFrame(this.draw.bind(this));
         this.onUpdateCallback();
         this.normalizeData();
         this.drawGraph();
@@ -101,13 +99,6 @@ export default class Canvas {
     }
 
     averageData() {
-        // Уменьшить частоту обновления данных
-        if (performance.now() - this.lastDataUpdate < 50) { // 20 FPS для данных
-            return;
-        }
-        this.lastDataUpdate = performance.now();
-
-
         const data = this.freqData;
         const dLen = data.length;
         const W = this.W;
@@ -124,44 +115,13 @@ export default class Canvas {
         }
     }
 
-    /* interpolateData() {
+    interpolateData() {
         const data = this.freqData;
         const W = this.W;
         const d = this.d;
         const scaleX = this.scaleX;
         for (let x = 0; x < W; ++x) {
             d[x] = data[(x / scaleX) | 0];
-        }
-    } */
-
-    interpolateData() {
-        // Уменьшить частоту обновления данных
-        if (performance.now() - this.lastDataUpdate < 50) { // 20 FPS для данных
-            return;
-        }
-        this.lastDataUpdate = performance.now();
-
-        const data = this.freqData;
-        const W = this.W;
-        const d = this.d;
-        const scaleX = this.scaleX;
-        
-        // Кубическая интерполяция вместо линейной
-        for (let x = 0; x < W; ++x) {
-            const pos = x / scaleX;
-            const i = Math.floor(pos);
-            const t = pos - i;
-            
-            // Берем 4 точки для интерполяции
-            const p0 = data[Math.max(0, i-1)];
-            const p1 = data[i];
-            const p2 = data[Math.min(data.length-1, i+1)];
-            const p3 = data[Math.min(data.length-1, i+2)];
-            
-            // Кубическая интерполяция
-            d[x] = p1 + 0.5 * t * (p2 - p0 + 
-                  t * (2*p0 - 5*p1 + 4*p2 - p3 + 
-                  t * (3*(p1 - p2) + p3 - p0)));
         }
     }
 
@@ -245,11 +205,6 @@ export default class Canvas {
           ctx.restore();
         }
 
-
-
-
-
-
         ctx.fillStyle = '#fff';
 
         this.frames++;
@@ -262,10 +217,7 @@ export default class Canvas {
     }
 
     drawSpectrum() {
-        // Уменьшить частоту обновления спектрограммы
-        if (performance.now() - this.lastSpectrumUpdate < 40) { // 25 FPS для спектрограммы
-            return;
-        }
+        if(!this.imageData) return;
         this.lastSpectrumUpdate = performance.now();
 
 
@@ -274,15 +226,19 @@ export default class Canvas {
         const colors = this.colors;
         const W = this.W;
 
-        ctx.save();
-        ctx.translate(0, 1);
-        ctx.drawImage(ctx.canvas, 0, 0);
+        const pixels = this.imageData.data;
+        const rowSize = W * 4;
+        pixels.copyWithin(rowSize, 0, pixels.length - rowSize);
+
         for (let x = 0; x < W; ++x) {
-            const p = colors[data[x]];
-            ctx.fillStyle = `rgb(${p})`;
-            ctx.fillRect(x, 0, 1, 1);
+            const [r,g,b,a] = colors[data[x]];
+            const idx = x * 4;
+            pixels[idx] = r;
+            pixels[idx + 1] = g;
+            pixels[idx + 2] = b;
+            pixels[idx + 3] = 255; // альфа
         }
-        ctx.restore();
+        this.ctxSpectrum.putImageData(this.imageData, 0, 0);
     }
 
     setPalette(palette) {
