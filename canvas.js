@@ -70,8 +70,8 @@ export default class Canvas {
       for (let i = 0; i < peaks.length && filtered.length < N; ++i) {
         if (filtered.every(p => Math.abs(p.x - peaks[i].x) >= minDist)) {
           const freqBin = Math.round(peaks[i].x / W * this.freqData.length);
-          const freqHz = this.i2Hz(freqBin);
-          filtered.push({ ...peaks[i], freqHz });
+          const f = this.i2Hz(freqBin);
+          filtered.push({ ...peaks[i], f });
         }
       }
       return filtered;
@@ -182,30 +182,25 @@ export default class Canvas {
         ctx.stroke();
 
 
-
         // Нарисовать несколько пиков
-        const peaks = this.findPeaks(3, 10, 10); // 3 пика, порог 10, минимум 10 пикселей между ними
+        const peaks = this.findPeaks(3, 10, 40);
         for (const peak of peaks) {
+          let peakY = (this.fftH - peak.value * this.fftScaleY);
+          if(peakY < 6) {
+            peakY = 6;
+          }
           ctx.save();
-          ctx.strokeStyle = '#f33';
-          ctx.fillStyle = '#fff';
+          ctx.fillStyle = '#ff0';
           ctx.beginPath();
-          ctx.arc(peak.x + 0.5, (this.fftH - peak.value * this.fftScaleY) + 0.5, 6, 0, 2 * Math.PI);
+          ctx.arc(peak.x + 0.5, peakY + 0.5, 3, 0, 2 * Math.PI);
           ctx.stroke();
           ctx.fill();
 
-          ctx.font = 'bold 14px monospace';
-          ctx.fillStyle = '#f33';
+          ctx.font = 'bold 11px monospace';
           ctx.textAlign = 'center';
-          ctx.fillText(
-            (peak.freqHz > 1000 ? (peak.freqHz / 1000).toFixed(2) + ' kHz' : peak.freqHz.toFixed(0) + ' Hz'),
-            peak.x,
-            (this.fftH - peak.value * this.fftScaleY) - 10
-          );
+          ctx.fillText(peak.f.toFixed(0) + ' Hz', peak.x, 11);
           ctx.restore();
         }
-
-        ctx.fillStyle = '#fff';
 
         this.frames++;
         if (performance.now() - this.lmt > 1000) {
@@ -257,6 +252,16 @@ export default class Canvas {
     }
 
     calibrate = () => {
+        function movingAverage(data, windowSize) {
+          const result = [];
+          for (let i = 0; i < data.length; i++) {
+            let start = Math.max(0, i - windowSize + 1);
+            let window = data.slice(start, i + 1);
+            result.push(average(window));
+          }
+          return result;
+        }
+
         if (this.dComp.length !== 0) {
             this.dComp.length = 0;
             return;
@@ -273,5 +278,6 @@ export default class Canvas {
             console.log(f, t, a, s, v, mi);
             this.dComp[i] = v;
         }
+        this.dComp = movingAverage(this.dComp, 16);
     }
 }
