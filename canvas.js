@@ -183,7 +183,7 @@ export default class Canvas {
 
 
         // Нарисовать несколько пиков
-        const peaks = this.findPeaks(3, 10, 40);
+        const peaks = this.findPeaks(1, 10, 40);
         for (const peak of peaks) {
           let peakY = (this.fftH - peak.value * this.fftScaleY);
           if(peakY < 6) {
