@@ -221,6 +221,7 @@ export default class Canvas {
         const colors = this.colors;
         const W = this.W;
 
+        // variant A
         const pixels = this.imageData.data;
         const rowSize = W * 4;
         pixels.copyWithin(rowSize, 0, pixels.length - rowSize);
@@ -234,6 +235,16 @@ export default class Canvas {
             pixels[idx + 3] = 255; // альфа
         }
         this.ctxSpectrum.putImageData(this.imageData, 0, 0);
+
+        // variant B (repaints)
+        /* ctx.drawImage(ctx.canvas, 0, 0, W, this.spectrumH - 1, 0, 1, W, this.spectrumH - 1);
+        ctx.save();
+        for(var x = 0; x < data.length; x++) {
+          const [r,g,b,a] = colors[data[x]];
+          ctx.fillStyle = `rgba(${r},${g},${b},1)`;
+          ctx.fillRect(x, 0, 1, 1);
+        }
+        ctx.restore(); */
     }
 
     setPalette(palette) {
