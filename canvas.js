@@ -49,32 +49,32 @@ export default class Canvas {
     }
 
     findPeaks(N = 3, threshold = 10, minDist = 10) {
-      // N — сколько пиков искать
-      // threshold — минимальный уровень (отсекает шум)
-      // minDist — минимальное расстояние между пиками (в пикселях)
-      const data = this.d;
-      const W = this.W;
-      let peaks = [];
+        // N — сколько пиков искать
+        // threshold — минимальный уровень (отсекает шум)
+        // minDist — минимальное расстояние между пиками (в пикселях)
+        const data = this.d;
+        const W = this.W;
+        let peaks = [];
 
-      for (let x = 1; x < W - 1; ++x) {
-        if (data[x] > threshold && data[x] > data[x - 1] && data[x] > data[x + 1]) {
-          peaks.push({ x, value: data[x] });
+        for (let x = 1; x < W - 1; ++x) {
+            if (data[x] > threshold && data[x] > data[x - 1] && data[x] > data[x + 1]) {
+                peaks.push({ x, value: data[x] });
+            }
         }
-      }
 
-      // Сортируем по убыванию амплитуды
-      peaks.sort((a, b) => b.value - a.value);
+        // Сортируем по убыванию амплитуды
+        peaks.sort((a, b) => b.value - a.value);
 
-      // Оставляем только N пиков, разнесённых не ближе minDist друг от друга
-      let filtered = [];
-      for (let i = 0; i < peaks.length && filtered.length < N; ++i) {
-        if (filtered.every(p => Math.abs(p.x - peaks[i].x) >= minDist)) {
-          const freqBin = Math.round(peaks[i].x / W * this.freqData.length);
-          const f = this.i2Hz(freqBin);
-          filtered.push({ ...peaks[i], f });
+        // Оставляем только N пиков, разнесённых не ближе minDist друг от друга
+        let filtered = [];
+        for (let i = 0; i < peaks.length && filtered.length < N; ++i) {
+            if (filtered.every(p => Math.abs(p.x - peaks[i].x) >= minDist)) {
+                const freqBin = Math.round(peaks[i].x / W * this.freqData.length);
+                const f = this.i2Hz(freqBin);
+                filtered.push({ ...peaks[i], f });
+            }
         }
-      }
-      return filtered;
+        return filtered;
     }
 
     draw() {
@@ -82,12 +82,12 @@ export default class Canvas {
             this.stop();
             return;
         }
-        
+
         // throttle FPS
         const targetFPS = document.hasFocus() ? 33 : 25;
         const now = performance.now();
         this.animationFrame = requestAnimationFrame(this.draw.bind(this));
-        if (now - this.lastFrameTime < 1000/targetFPS) {
+        if (now - this.lastFrameTime < 1000 / targetFPS) {
             return;
         }
         this.lastFrameTime = now;
@@ -185,21 +185,21 @@ export default class Canvas {
         // Нарисовать несколько пиков
         const peaks = this.findPeaks(1, 10, 40);
         for (const peak of peaks) {
-          let peakY = (this.fftH - peak.value * this.fftScaleY);
-          if(peakY < 6) {
-            peakY = 6;
-          }
-          ctx.save();
-          ctx.fillStyle = '#ff0';
-          ctx.beginPath();
-          ctx.arc(peak.x + 0.5, peakY + 0.5, 3, 0, 2 * Math.PI);
-          ctx.stroke();
-          ctx.fill();
+            let peakY = (this.fftH - peak.value * this.fftScaleY);
+            if (peakY < 6) {
+                peakY = 6;
+            }
+            ctx.save();
+            ctx.fillStyle = '#ff0';
+            ctx.beginPath();
+            ctx.arc(peak.x + 0.5, peakY + 0.5, 3, 0, 2 * Math.PI);
+            ctx.stroke();
+            ctx.fill();
 
-          ctx.font = 'bold 11px monospace';
-          ctx.textAlign = 'center';
-          ctx.fillText(peak.f.toFixed(0) + ' Hz', peak.x, 11);
-          ctx.restore();
+            ctx.font = 'bold 11px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(peak.f.toFixed(0) + ' Hz', peak.x, 11);
+            ctx.restore();
         }
 
         this.frames++;
@@ -211,41 +211,28 @@ export default class Canvas {
         ctx.fillText(this.fps | 0, 0, 16);
     }
 
+
+    // Use OffscreenCanvas for better performance
     drawSpectrum() {
-        if(!this.imageData) return;
-        this.lastSpectrumUpdate = performance.now();
+        if (!this.imageData) return;
 
-
-        const ctx = this.ctxSpectrum;
-        const data = this.d;
-        const colors = this.colors;
+        const pixels = this.imageData.data;
         const W = this.W;
 
-        // variant A
-        const pixels = this.imageData.data;
+        // Batch pixel operations
         const rowSize = W * 4;
         pixels.copyWithin(rowSize, 0, pixels.length - rowSize);
 
-        for (let x = 0; x < W; ++x) {
-            const [r,g,b,a] = colors[data[x]];
-            const idx = x * 4;
-            pixels[idx] = r;
-            pixels[idx + 1] = g;
-            pixels[idx + 2] = b;
-            pixels[idx + 3] = 255; // альфа
+        // Use Uint32Array for faster pixel manipulation
+        const pixelView = new Uint32Array(pixels.buffer);
+        for (let x = 0; x < W; x++) {
+            const [r, g, b] = this.colors[this.d[x]];
+            pixelView[x] = (255 << 24) | (b << 16) | (g << 8) | r;
         }
-        this.ctxSpectrum.putImageData(this.imageData, 0, 0);
 
-        // variant B (repaints)
-        /* ctx.drawImage(ctx.canvas, 0, 0, W, this.spectrumH - 1, 0, 1, W, this.spectrumH - 1);
-        ctx.save();
-        for(var x = 0; x < data.length; x++) {
-          const [r,g,b,a] = colors[data[x]];
-          ctx.fillStyle = `rgba(${r},${g},${b},1)`;
-          ctx.fillRect(x, 0, 1, 1);
-        }
-        ctx.restore(); */
+        this.ctxSpectrum.putImageData(this.imageData, 0, 0);
     }
+
 
     setPalette(palette) {
         const gradient = this.ctxSpectrum.createLinearGradient(0, 0, 255, 0);
@@ -264,13 +251,13 @@ export default class Canvas {
 
     calibrate = () => {
         function movingAverage(data, windowSize) {
-          const result = [];
-          for (let i = 0; i < data.length; i++) {
-            let start = Math.max(0, i - windowSize + 1);
-            let window = data.slice(start, i + 1);
-            result.push(average(window));
-          }
-          return result;
+            const result = [];
+            for (let i = 0; i < data.length; i++) {
+                let start = Math.max(0, i - windowSize + 1);
+                let window = data.slice(start, i + 1);
+                result.push(average(window));
+            }
+            return result;
         }
 
         if (this.dComp.length !== 0) {

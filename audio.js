@@ -35,31 +35,57 @@ export default class Audio {
     }
 
     async start(deviceId) {
-        const supported = navigator.mediaDevices.getSupportedConstraints();
-        console.log(supported);
-        const constraints = {
-            audio: {
-                autoGainControl: false,
-                echoCancellation: false,
-                noiseSuppression: false,
-                sampleRate: 48000,
-                channelCount: 1,
-                ...(supported.voiceIsolation && { voiceIsolation: false }),
-                ...(deviceId && { deviceId: { exact: deviceId } }),
-            },
-            video: false,
-        };
-        if (this.stream) {
-            this.source.disconnect(this.gain);
-            this.stream.getTracks().forEach((t) => t.stop());
-            this.source = null;
-            this.stream = null;
-        }
-        this.stream = await navigator.mediaDevices.getUserMedia(constraints)
-        this.source = this.audioContext.createMediaStreamSource(this.stream);
-        this.source.connect(this.gain);
+        try {
+            // Resume context if suspended
+            if (this.audioContext.state === 'suspended') {
+                await this.audioContext.resume();
+            }
 
-        // this.recreateOscillators();
+            const supported = navigator.mediaDevices.getSupportedConstraints();
+            console.log(supported);
+            const constraints = {
+                audio: {
+                    autoGainControl: false,
+                    echoCancellation: false,
+                    noiseSuppression: false,
+                    sampleRate: 48000,
+                    channelCount: 1,
+                    ...(supported.voiceIsolation && { voiceIsolation: false }),
+                    ...(deviceId && { deviceId: { exact: deviceId } }),
+                },
+                video: false,
+            };
+            if (this.stream) {
+                this.source.disconnect(this.gain);
+                this.stream.getTracks().forEach((t) => t.stop());
+                this.source = null;
+                this.stream = null;
+            }
+            this.stream = await navigator.mediaDevices.getUserMedia(constraints)
+            this.source = this.audioContext.createMediaStreamSource(this.stream);
+            this.source.connect(this.gain);
+
+            // this.recreateOscillators();
+
+        } catch (error) {
+            console.error('Audio initialization failed:', error);
+            throw new Error(`Microphone access denied: ${error.message}`);
+        }
+    }
+
+    async start(deviceId) {
+    }
+
+    cleanup() {
+        if (this.stream) {
+            this.stream.getTracks().forEach(track => track.stop());
+        }
+        if (this.source) {
+            this.source.disconnect();
+        }
+        if (this.audioContext && this.audioContext.state !== 'closed') {
+            this.audioContext.close();
+        }
     }
 
     getAnalyser() { return this.analyser; }
@@ -69,10 +95,12 @@ export default class Audio {
         // this.osc[n].frequency.linearRampToValueAtTime(f, this.audioContext.currentTime + 1);
     }
     setOscState(n, on) {
-        console.log(this.osc[n], on ? 'on' : 'off');
-        if (on) {
+        if (!this.osc[n]) return;
+
+        if (on && this.osc[n].started !== true) {
             this.osc[n].start();
-        } else {
+            this.osc[n].started = true;
+        } else if (!on && this.osc[n].started === true) {
             this.osc[n].stop();
             this.recreateOscillator(n);
         }

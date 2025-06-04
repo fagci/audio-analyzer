@@ -11,10 +11,16 @@ const mediaDevices = navigator.mediaDevices;
 
 let oscStates = [false, false, false];
 
+const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+const defaultFFTSize = isMobile ? 2048 : 4096;
+
 const FFT_SIZES = [128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768];
 
 async function onDeviceSelect(deviceId) {
-    canvas.stop();
+    if (audio) {
+        canvas.stop();
+        audio.cleanup();
+    }
 
     if (!audio) {
         audio = new Audio();
@@ -36,7 +42,7 @@ async function onDeviceSelect(deviceId) {
             .add(oscStates, '0')
             .onChange((v) => {audio.setOscState(0, v);})
             .name('On') */
-            
+
 
         audioSettings
             .add(audio.gain.gain, 'value', 1, 46, 1)
@@ -62,9 +68,9 @@ async function onDeviceSelect(deviceId) {
             .setValue(localStorage.getItem('palette') || 'gqrx');
 
         displaySettings
-            .add({ fftSize: 4096 }, 'fftSize', FFT_SIZES)
+            .add({ fftSize: defaultFFTSize }, 'fftSize', FFT_SIZES)
             .name('FFT bins')
-            .setValue(localStorage.getItem('fftSize') || 4096)
+            .setValue(localStorage.getItem('fftSize') || defaultFFTSize)
             .onChange(onFftChange);
 
         displaySettings
@@ -144,6 +150,13 @@ window.addEventListener('load', async function() {
     try {
         await navigator.wakeLock.request('screen');
     } catch (_) { }
+});
+
+window.addEventListener('beforeunload', () => {
+    if (audio) {
+        audio.cleanup();
+    }
+    canvas.stop();
 });
 
 document.addEventListener('visibilitychange', () => {
