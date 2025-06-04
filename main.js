@@ -89,22 +89,32 @@ async function onFftChange(v) {
 }
 
 async function getMediaDevices(type) {
-    await navigator.mediaDevices.getUserMedia({ audio: true });
-    const devices = await mediaDevices.enumerateDevices();
-    return devices.filter(device => device.kind === type)
+    try {
+        // Запрашиваем разрешение на доступ к микрофону
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (error) {
+        console.log('Доступ к микрофону отклонён:', error);
+    }
+
+    // Получаем список устройств даже при ошибке доступа
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    return devices.filter(device => device.kind === type);
 }
 
 async function updateDevicesList() {
-    const devList = {};
     const devices = await getMediaDevices('audioinput');
+    const devList = {};
 
     devices.forEach((d, i) => {
-        devList[d.label || `Input ${i}`] = d.deviceId;
+        // Используем уникальный идентификатор, если метка отсутствует
+        const label = d.label || `Устройство ${i + 1}`;
+        devList[label] = d.deviceId;
     });
 
-    // todo: fix doubling control
+    // Обновляем элементы управления
     deviceListControl.options(devList).onChange(onDeviceSelect);
 }
+
 
 
 window.addEventListener('load', async function() {
