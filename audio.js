@@ -15,6 +15,8 @@ export default class Audio {
     }
 
     async start(deviceId) {
+        const supported = navigator.mediaDevices.getSupportedConstraints();
+        console.log(supported);
         const constraints = {
             audio: {
               autoGainControl: false,
@@ -22,6 +24,7 @@ export default class Audio {
               noiseSuppression: false,
               sampleRate: 48000,
               channelCount: 1,
+              ...(supported.voiceIsolation && { voiceIsolation: false }),
               ...(deviceId && { deviceId: { exact: deviceId } }),
             },
             video: false,
