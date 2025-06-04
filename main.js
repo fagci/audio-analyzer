@@ -91,13 +91,13 @@ async function onFftChange(v) {
 async function getMediaDevices(type) {
     try {
         // Запрашиваем разрешение на доступ к микрофону
-        await navigator.mediaDevices.getUserMedia({ audio: true });
+        await mediaDevices.getUserMedia({ audio: true });
     } catch (error) {
         console.log('Доступ к микрофону отклонён:', error);
     }
 
     // Получаем список устройств даже при ошибке доступа
-    const devices = await navigator.mediaDevices.enumerateDevices();
+    const devices = await mediaDevices.enumerateDevices();
     return devices.filter(device => device.kind === type);
 }
 
