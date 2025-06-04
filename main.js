@@ -1,13 +1,15 @@
 import palettes from "./palettes.js"
 import Canvas from './canvas.js'
 import Audio from './audio.js'
-import GUI from 'https://cdn.jsdelivr.net/npm/lil-gui@0.17/+esm'
+import GUI from 'https://cdn.jsdelivr.net/npm/lil-gui@0.20/+esm'
 
 let audio;
 const canvas = new Canvas();
 const gui = new GUI({ title: 'Settings', autoPlace: true });
 const deviceListControl = gui.add({ device: 'Select device' }, 'device').name('Input');
 const mediaDevices = navigator.mediaDevices;
+
+let oscStates = [false, false, false];
 
 const FFT_SIZES = [128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768];
 
@@ -18,16 +20,26 @@ async function onDeviceSelect(deviceId) {
         audio = new Audio();
         const audioSettings = gui.addFolder('Audio').close();
         const displaySettings = gui.addFolder('Display').close();
+        // const oscSettings = gui.addFolder('Osc').close();
+        // const osc1Settings = oscSettings.addFolder('Osc 1').close();
+
+        /* osc1Settings
+            .add(audio.osc[0].frequency, 'value', 0, 24000, 440)
+            .setValue(localStorage.getItem('osc1f') || 440)
+            .onChange((v) => { 
+                localStorage.setItem('osc1f', v);
+                audio.setOscF(0, v);
+            })
+            .name('osc1f');
+
+        osc1Settings
+            .add(oscStates, '0')
+            .onChange((v) => {audio.setOscState(0, v);})
+            .name('On') */
+            
 
         audioSettings
-            .add({ fftSize: 4096 }, 'fftSize', FFT_SIZES)
-            .name('FFT bins')
-            .setValue(localStorage.getItem('fftSize') || 4096)
-            .onChange(onFftChange);
-
-        audioSettings
-            .add(audio.gain.gain, 'value', 0, 46)
-            .decimals(1)
+            .add(audio.gain.gain, 'value', 1, 46, 1)
             .setValue(localStorage.getItem('gain') || 1)
             .onChange((v) => { localStorage.setItem('gain', v) })
             .name('gain');
@@ -44,15 +56,21 @@ async function onDeviceSelect(deviceId) {
             .setValue(localStorage.getItem('minDecibels') || -145)
             .onChange((v) => { localStorage.setItem('minDecibels', v) });
 
-        audioSettings
-            .add(audio.analyser, 'smoothingTimeConstant', 0, 1, 0.1)
-            .name('smoothing')
-            .setValue(0);
-
         displaySettings
             .add({ palette: '' }, 'palette', Object.keys(palettes))
             .onChange(setPalette)
             .setValue(localStorage.getItem('palette') || 'gqrx');
+
+        displaySettings
+            .add({ fftSize: 4096 }, 'fftSize', FFT_SIZES)
+            .name('FFT bins')
+            .setValue(localStorage.getItem('fftSize') || 4096)
+            .onChange(onFftChange);
+
+        displaySettings
+            .add(audio.analyser, 'smoothingTimeConstant', 0, 1, 0.1)
+            .name('smoothing')
+            .setValue(0);
 
         gui
             .add({ calibrate: canvas.calibrate }, 'calibrate')
