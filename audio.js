@@ -73,9 +73,6 @@ export default class Audio {
         }
     }
 
-    async start(deviceId) {
-    }
-
     cleanup() {
         if (this.stream) {
             this.stream.getTracks().forEach(track => track.stop());
