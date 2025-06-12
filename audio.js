@@ -91,6 +91,43 @@ export default class Audio {
     setOscF(n, f) {
         // this.osc[n].frequency.linearRampToValueAtTime(f, this.audioContext.currentTime + 1);
     }
+
+    remap(x, srcMin, srcMax, dstMin, dstMax) {
+        if (srcMax === srcMin) return dstMin;
+        x = Math.max(srcMin, Math.min(x, srcMax));
+        return dstMin + ((x - srcMin) * (dstMax - dstMin)) / (srcMax - srcMin);
+    }
+
+    autorange = () => {
+        const { freqData, analyser } = this;
+
+        analyser.minDecibels = -180;
+        analyser.maxDecibels = 10;
+
+        setTimeout(() => {
+            let sumDev = 0;
+            let maxValue = 0;
+
+            for (let i = 0; i < freqData.length; ++i) {
+                sumDev += Math.pow(freqData[i], 2);
+                if (freqData[i] > maxValue) {
+                    maxValue = freqData[i];
+                }
+            }
+            const minValue = Math.sqrt(sumDev / freqData.length);
+
+            const minDb = this.remap(minValue, 0, 255, analyser.minDecibels, analyser.maxDecibels);
+            const maxDb = this.remap(maxValue, 0, 255, analyser.minDecibels, analyser.maxDecibels);
+
+            analyser.minDecibels = minDb;
+            analyser.maxDecibels = maxDb;
+
+            if (analyser.maxDecibels - analyser.minDecibels < 20) {
+                analyser.maxDecibels = analyser.minDecibels + 20;
+            }
+        }, 100);
+    }
+
     setOscState(n, on) {
         if (!this.osc[n]) return;
 

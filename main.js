@@ -62,6 +62,10 @@ async function onDeviceSelect(deviceId) {
             .setValue(localStorage.getItem('minDecibels') || -145)
             .onChange((v) => { localStorage.setItem('minDecibels', v) });
 
+        audioSettings
+            .add({ autorange: audio.autorange }, 'autorange')
+            .name('Auto');
+
         displaySettings
             .add({ palette: '' }, 'palette', Object.keys(palettes))
             .onChange(setPalette)
