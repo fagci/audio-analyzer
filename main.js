@@ -122,6 +122,7 @@ async function getMediaDevices(type) {
 
     // Получаем список устройств даже при ошибке доступа
     const devices = await mediaDevices.enumerateDevices();
+    console.log(devices);
     return devices.filter(device => device.kind === type);
 }
 
