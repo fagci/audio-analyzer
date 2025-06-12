@@ -98,7 +98,7 @@ export default class Audio {
         return dstMin + ((x - srcMin) * (dstMax - dstMin)) / (srcMax - srcMin);
     }
 
-    autorange = () => {
+    autorange = (cb) => {
         const { freqData, analyser } = this;
 
         analyser.minDecibels = -180;
@@ -119,12 +119,13 @@ export default class Audio {
             const minDb = this.remap(minValue, 0, 255, analyser.minDecibels, analyser.maxDecibels);
             const maxDb = this.remap(maxValue, 0, 255, analyser.minDecibels, analyser.maxDecibels);
 
-            analyser.minDecibels = minDb;
-            analyser.maxDecibels = maxDb;
+            analyser.minDecibels = minDb | 0;
+            analyser.maxDecibels = maxDb | 0;
 
             if (analyser.maxDecibels - analyser.minDecibels < 20) {
                 analyser.maxDecibels = analyser.minDecibels + 20;
             }
+            cb();
         }, 100);
     }
 

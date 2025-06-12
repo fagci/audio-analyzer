@@ -50,20 +50,30 @@ async function onDeviceSelect(deviceId) {
             .onChange((v) => { localStorage.setItem('gain', v) })
             .name('gain');
 
-        audioSettings
+        const maxDb = audioSettings
             .add(audio.analyser, 'maxDecibels', -200, 100)
             .name('max dB')
             .setValue(localStorage.getItem('maxDecibels') || -30)
             .onChange((v) => { localStorage.setItem('maxDecibels', v) });
 
-        audioSettings
+        const minDb = audioSettings
             .add(audio.analyser, 'minDecibels', -200, 100)
             .name('min dB')
             .setValue(localStorage.getItem('minDecibels') || -145)
             .onChange((v) => { localStorage.setItem('minDecibels', v) });
 
         audioSettings
-            .add({ autorange: audio.autorange }, 'autorange')
+            .add({
+                autorange: function() {
+                    audio.autorange(function() {
+                        console.log('updated');
+                        minDb.updateDisplay();
+                        maxDb.updateDisplay();
+                        localStorage.setItem('minDecibels', audio.analyser.minDecibels);
+                        localStorage.setItem('maxDecibels', audio.analyser.maxDecibels);
+                    });
+                }
+            }, 'autorange')
             .name('Auto');
 
         displaySettings
